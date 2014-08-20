@@ -1,0 +1,53 @@
+<project name="pegquery" default="jar">
+	<!-- directory / file definition -->
+	<property name="pegquery_source_dir" value="src" />
+	<property name="peg4d_dir"           value="peg4d" />
+	<property name="build_dir"           value="build" />
+	<property name="pegquery_jar"        value="pegquery.jar" />
+	<property name="asm_jar"             value="lib/asm-all-4.0.jar" />
+	<property name="peg4d_jar"           value="${peg4d_dir}/peg4d.jar" />
+
+	<!-- ================================== -->
+	<!--             PRE-BUILD              -->
+	<!-- ================================== -->
+	<target name="pre-build">
+		<ant antfile="build.xml" dir="${peg4d_dir}" target="jar" />
+	</target>
+
+	<!-- ================================== -->
+	<!--                BUILD               -->
+	<!-- ================================== -->
+	<target name="build" depends="pre-build">
+		<mkdir dir="${build_dir}" />
+		<javac srcdir="${pegquery_source_dir}" destdir="${build_dir}" debug="on" target="1.8" source="1.8" includeantruntime="false" >
+			<classpath path="${peg4d_jar}" />
+			<include name="**/*.java" />
+			<compilerarg value="-Xlint:deprecation" />
+			<compilerarg value="-Xlint:unchecked" />
+		</javac>
+	</target>
+
+	<!-- ================================== -->
+	<!--            GENERATE JAR            -->
+	<!-- ================================== -->
+	<target name="jar" depends="build">
+		<jar jarfile="${pegquery_jar}">
+			<fileset dir="${build_dir}" includes="**/*.class" />
+			<fileset dir="${pegquery_source_dir}/resource" includes="**" />
+			<exclude name="**/*Test.class" />
+			<manifest>
+				<attribute name="Main-Class" value="pegquery.Main" />
+			</manifest>
+			<zipfileset src="${peg4d_jar}"/>
+		</jar>
+	</target>
+
+	<!-- ================================== -->
+	<!--               CLEAN                -->
+	<!-- ================================== -->
+	<target name="clean">
+		<ant antfile="build.xml" dir="${peg4d_dir}" target="clean" />
+		<delete dir="${build_dir}"/>
+		<delete file="${pegquery_jar}" />
+	</target>
+</project>

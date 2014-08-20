@@ -1,0 +1,4 @@
+[submodule "peg4d"]
+	path = peg4d
+	url = git@github.com:peg4d/peg4d-java.git
+	ignore = dirty

@@ -2,6 +2,7 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/PEG4d"/>
+	<classpathentry kind="lib" path="/peg4d-java/ext/jline-1.0.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/peg4d-java"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
