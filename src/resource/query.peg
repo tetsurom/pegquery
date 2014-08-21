@@ -1,12 +1,11 @@
-// query language definition
 
 TopLevel
     = WS Stmt WS
     ;
 
 WS
-	= [ \t\n\r]*
-	;
+    = [ \t\n\r]*
+    ;
 
 Stmt
     = SelectStmt;
@@ -45,36 +44,36 @@ Symbol
 
 
 Number
-	= <{ Minus? Int Frac? Exp? #number }>
-	;
+    = <{ Minus? Int Frac? Exp? #number }>
+    ;
 Minus
-	= '-'
-	;
+    = '-'
+    ;
 Int
-	= Zero
-	/ Digit1_9 DIGIT*
-	;
+    = Zero
+    / Digit1_9 DIGIT*
+    ;
 Zero
-	= '0'
-	;
+    = '0'
+    ;
 Digit1_9
-	= [1-9]
-	;
+    = [1-9]
+    ;
 DIGIT
-	= [0-9]
-	;
+    = [0-9]
+    ;
 Frac
-	= DecimalPoint DIGIT+
-	;
+    = DecimalPoint DIGIT+
+    
 DecimalPoint
-	= '.'
-	;
+    = '.'
+    ;
 Exp
-	= E (Minus / Plus)? DIGIT+
-	;
+    = E (Minus / Plus)? DIGIT+
+    ;
 E
-	= [eE]
-	;
+    = [eE]
+    ;
 Plus
-	= '+'
-	;
+    = '+'
+    ;
