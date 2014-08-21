@@ -10,6 +10,8 @@ import java.util.Optional;
 import java.util.Set;
 
 public class ArgumentsParser {
+	protected Optional<OptionListener> defaultListener = Optional.empty();
+
 	/**
 	 * contains recognized options
 	 */
@@ -78,11 +80,28 @@ public class ArgumentsParser {
 		return this;
 	}
 
+	/**
+	 * 
+	 * @param listener
+	 * may be null
+	 * @return
+	 */
+	public ArgumentsParser addDefaultAction(OptionListener listener) {
+		this.defaultListener = Optional.ofNullable(listener);
+		return this;
+	}
+
 	public void parseAndInvokeAction(String[] args) throws IllegalArgumentException {
 		final List<Pair<Optional<String>, Optional<OptionListener>>> pairList = new ArrayList<>();
 
 		// parse arguments
 		final int size = args.length;
+
+		if(size == 0) {
+			this.defaultListener.ifPresent(a -> a.invoke(Optional.empty()));
+			return;
+		}
+
 		final Set<Option> foundOptionSet = new HashSet<>();
 		for(int i = 0; i < size; i++) {
 			String optionSymbol = args[i];
