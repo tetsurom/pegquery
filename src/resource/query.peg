@@ -1,2 +1,79 @@
-// query language definition
-TopLevel = . ;
+
+TopLevel
+    = WS Stmt WS
+    ;
+
+WS
+    = [ \t\n\r]*
+    ;
+
+Stmt
+    = SelectStmt;
+
+SelectStmt
+    = Select WS <{ Path^ #select }>
+    ;
+
+Select
+    = "SELECT" / "Select" / "select"
+    ;
+
+Where
+    = "WHERE" / "Where" / "where"
+    ;
+
+Path
+    = <{ (PathSeg^ ("." PathSeg^)*)? #path }>
+    ;
+
+PathSeg
+    = <{ (Wildcard / Tag) #tag }>
+    ;
+
+Wildcard
+    = "*"
+    ;
+
+Tag
+    = "#" Symbol
+    ;
+
+Symbol
+    = [a-zA-Z_][a-zA-Z0-9_]*
+    ;
+
+
+Number
+    = <{ Minus? Int Frac? Exp? #number }>
+    ;
+Minus
+    = '-'
+    ;
+Int
+    = Zero
+    / Digit1_9 DIGIT*
+    ;
+Zero
+    = '0'
+    ;
+Digit1_9
+    = [1-9]
+    ;
+DIGIT
+    = [0-9]
+    ;
+Frac
+    = DecimalPoint DIGIT+
+    
+DecimalPoint
+    = '.'
+    ;
+Exp
+    = E (Minus / Plus)? DIGIT+
+    ;
+E
+    = [eE]
+    ;
+Plus
+    = '+'
+    ;
