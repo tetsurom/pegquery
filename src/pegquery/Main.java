@@ -4,8 +4,10 @@ import java.util.Optional;
 
 import org.peg4d.Grammar;
 import org.peg4d.GrammarComposer;
+import org.peg4d.Helper;
 import org.peg4d.ParserContext;
 import org.peg4d.ParsingObject;
+import org.peg4d.ParsingSource;
 
 public class Main {	//TODO: pipe line mode
 	private final static String defaultStartPoint = "TopLevel";
@@ -58,7 +60,10 @@ public class Main {	//TODO: pipe line mode
 				if(resultPair.getLeft().equals("")) {
 					continue;
 				}
-				System.out.println(resultPair.getLeft());
+				ParsingSource source = Helper.loadLine(queryPeg, "(stdin)", resultPair.getRight(), resultPair.getLeft());
+				ParserContext queryParserContext = queryPeg.newParserContext(source);
+				ParsingObject tree = queryParserContext.parseNode(defaultStartPoint);
+				System.out.println("Parsed: " + tree);
 			}
 			System.out.println("");
 		}
