@@ -65,7 +65,6 @@ DIGIT
 Frac
     = DecimalPoint DIGIT+
     ;
-    
 DecimalPoint
     = '.'
     ;
