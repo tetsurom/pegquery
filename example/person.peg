@@ -1,0 +1,68 @@
+TopLevel
+	= Persons
+	;
+
+_
+	= [ \t\n\r]*
+	;
+
+Persons
+	= BeginArray <{ Person^ (ValueSep Person^)*  #persons }> EndArray
+	;
+
+Person
+	= BeginObject <{ Name^ ValueSep Id^ #person }> EndObject
+	;
+
+BeginObject
+	= _ '{' _
+	;
+
+EndObject
+	= _ '}' _
+	;
+
+BeginArray
+	= _ '[' _
+	;
+
+EndArray
+	= _ ']' _
+	;
+
+ValueSep
+	= _ ',' _
+	;
+
+MemberSep
+	= _ ':' _
+	;
+
+String
+	= DoubleQuote ('\\"' / !DoubleQuote .)* DoubleQuote
+	;
+
+DoubleQuote
+	= '"'
+	;
+
+Number
+	= Minus? Int
+	;
+
+Minus
+	= '-'
+	;
+
+Int
+	= '0'
+	/ [1-9] [0-9]*
+	;
+
+Name
+	= '"name"' MemberSep <{ String^ #name }>
+	;
+
+Id
+	= '"id"' MemberSep <{ Number^ #id }>
+	;
