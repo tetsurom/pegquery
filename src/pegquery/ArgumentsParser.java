@@ -183,7 +183,7 @@ public class ArgumentsParser {
 			}
 			Optional<String> desc = option.getDescription();
 			if(desc.isPresent()) {
-				String[] descs = desc.get().split("\n");
+				String[] descs = desc.get().split(System.lineSeparator());
 				for(int i = 0; i < descs.length; i++) {
 					if(i > 0) {
 						sBuilder.append(System.lineSeparator());

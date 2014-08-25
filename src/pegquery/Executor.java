@@ -46,7 +46,9 @@ public class Executor extends QueryVisitor<Object> {
 					return;
 				}
 				this.findElementAt(resultList, path, curPathIndex + 1, subObject);
-				break;
+			}
+			else {
+				this.findElement(resultList, path, subObject);
 			}
 		}
 	}
