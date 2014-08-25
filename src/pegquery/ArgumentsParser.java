@@ -22,6 +22,8 @@ public class ArgumentsParser {
 	 */
 	protected final Map<String, Option> optionMap = new HashMap<>();
 
+	protected final Set<Option> requireOptionSet = new HashSet<>();
+
 	private int maxSizeOfUsage;
 
 	/**
@@ -42,6 +44,28 @@ public class ArgumentsParser {
 	public ArgumentsParser addOption(String shortName, String longName, 
 	                                 boolean hasArg, String description, 
 	                                 OptionListener listener) throws IllegalArgumentException {
+		return this.addOption(shortName, longName, hasArg, description, false, listener);
+	}
+
+	/**
+	 * 
+	 * @param shortName
+	 * may be null. not start with '--'
+	 * @param longName
+	 * may be null. not start with '-'
+	 * @param hasArg
+	 * @param description
+	 * may be null
+	 * @param require
+	 * @param listener
+	 * may be null
+	 * @return
+	 * this
+	 * @throws IllegalArgumentException
+	 */
+	public ArgumentsParser addOption(String shortName, String longName, 
+            boolean hasArg, String description, boolean require,
+            OptionListener listener) throws IllegalArgumentException {
 		// check short name format
 		Optional<String> actualShortName = Optional.empty();
 		if(shortName != null) {
@@ -68,7 +92,7 @@ public class ArgumentsParser {
 
 		// add option
 		Option option = new Option(actualShortName, actualLongName, hasArg, 
-				Optional.ofNullable(listener), Optional.ofNullable(description));
+				Optional.ofNullable(listener), Optional.ofNullable(description), require);
 		this.optionList.add(option);
 		actualShortName.ifPresent(key -> this.optionMap.put(key, option));
 		actualLongName.ifPresent(key -> this.optionMap.put(key, option));
@@ -76,6 +100,9 @@ public class ArgumentsParser {
 		int usageSize = option.getUsage().length();
 		if(this.maxSizeOfUsage < usageSize) {
 			this.maxSizeOfUsage = usageSize;
+		}
+		if(option.isRequiredOption()) {
+			this.requireOptionSet.add(option);
 		}
 		return this;
 	}
@@ -125,6 +152,13 @@ public class ArgumentsParser {
 			foundOptionSet.add(option);
 		}
 
+		// check require option
+		for(Option option : this.requireOptionSet) {
+			if(!foundOptionSet.contains(option)) {
+				throw new IllegalArgumentException("require option: " + option.getUsage());
+			}
+		}
+
 		// invoke action
 		for(final Pair<Optional<String>, Optional<OptionListener>> pair : pairList) {
 			pair.getRight().ifPresent(a -> a.invoke(pair.getLeft()));
@@ -171,6 +205,7 @@ public class ArgumentsParser {
 		protected final boolean hasArg;
 		protected final Optional<OptionListener> listener;
 		protected final Optional<String> description;
+		protected final boolean require;
 
 		protected final String usage;
 
@@ -185,14 +220,16 @@ public class ArgumentsParser {
 		 * not null
 		 * @param description
 		 * not null
+		 *  @param require
 		 */
 		public Option(Optional<String> shortName, Optional<String> longName, boolean hasArg, 
-		              Optional<OptionListener> listener, Optional<String> description) {
+		              Optional<OptionListener> listener, Optional<String> description, boolean require) {
 			this.shortName = shortName;
 			this.longName = longName;
 			this.hasArg = hasArg;
 			this.listener = listener;
 			this.description = description;
+			this.require = require;
 
 			final StringBuilder sBuilder = new StringBuilder();
 			this.shortName.ifPresent(n -> sBuilder.append(n));
@@ -224,6 +261,10 @@ public class ArgumentsParser {
 
 		public Optional<String> getDescription() {
 			return this.description;
+		}
+
+		public boolean isRequiredOption() {
+			return this.require;
 		}
 
 		public String getUsage() {
