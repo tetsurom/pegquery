@@ -28,7 +28,7 @@ public class Main {	//TODO: pipe line mode
 		 */
 		final ArgumentsParser argsParser = new ArgumentsParser();
 		argsParser.addDefaultAction(s -> argsParser.printHelpBeforeExit(System.err, 1))
-		.addOption("h", "help", false, "show this help message", 
+		.addHelp("h", "help", false, "show this help message", 
 				s -> argsParser.printHelpBeforeExit(System.out, 0))
 		.addOption("g", "grammar", true, "peg definition of target data format", true,
 				s -> pegDef4Data = Optional.of(s.get()))

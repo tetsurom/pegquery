@@ -12,6 +12,8 @@ import java.util.Set;
 public class ArgumentsParser {
 	protected Optional<OptionListener> defaultListener = Optional.empty();
 
+	protected Optional<Option> helpOption = Optional.empty();
+
 	/**
 	 * contains recognized options
 	 */
@@ -66,6 +68,12 @@ public class ArgumentsParser {
 	public ArgumentsParser addOption(String shortName, String longName, 
             boolean hasArg, String description, boolean require,
             OptionListener listener) throws IllegalArgumentException {
+		return this.addOption(shortName, longName, hasArg, description, require, listener, false);
+	}
+
+	protected ArgumentsParser addOption(String shortName, String longName, 
+            boolean hasArg, String description, boolean require,
+            OptionListener listener, boolean asHelp) throws IllegalArgumentException {
 		// check short name format
 		Optional<String> actualShortName = Optional.empty();
 		if(shortName != null) {
@@ -104,6 +112,9 @@ public class ArgumentsParser {
 		if(option.isRequiredOption()) {
 			this.requireOptionSet.add(option);
 		}
+		if(asHelp) {
+			this.helpOption = Optional.of(option);
+		}
 		return this;
 	}
 
@@ -116,6 +127,11 @@ public class ArgumentsParser {
 	public ArgumentsParser addDefaultAction(OptionListener listener) {
 		this.defaultListener = Optional.ofNullable(listener);
 		return this;
+	}
+
+	public ArgumentsParser addHelp(String shortName, String longName, boolean hasArg, 
+             String description, OptionListener listener) throws IllegalArgumentException {
+		return this.addOption(shortName, longName, hasArg, description, false, listener, true);
 	}
 
 	public void parseAndInvokeAction(String[] args) throws IllegalArgumentException {
@@ -150,6 +166,12 @@ public class ArgumentsParser {
 			}
 			pairList.add(new Pair<Optional<String>, Optional<OptionListener>>(arg, option.getListener()));
 			foundOptionSet.add(option);
+
+			// invoke help action if present
+			if(this.helpOption.isPresent() && this.helpOption.get().equals(option)) {
+				final Optional<String> helpArg = arg;
+				option.getListener().ifPresent(a -> a.invoke(helpArg));
+			}
 		}
 
 		// check require option
@@ -174,6 +196,8 @@ public class ArgumentsParser {
 
 		// format help message
 		sBuilder = new StringBuilder();
+		sBuilder.append("Options:");
+		sBuilder.append(System.lineSeparator());
 		for(Option option : this.optionList) {
 			final int size = option.getUsage().length();
 			sBuilder.append("    ");
