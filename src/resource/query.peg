@@ -7,11 +7,15 @@ Stmt
     = SelectStmt;
 
 SelectStmt
-    = SELECT _ { @Path _ @WhereClause? #select }
+    = SELECT _ { @Path @FromClause? @WhereClause? #select }
     ;
 
 WhereClause
-    = WHERE _ { @Expression #where }
+    = WHERE _ { @Expression #where } _
+    ;
+
+FromClause
+    = FROM _ { @Path #from } _
     ;
 
 SELECT
@@ -22,8 +26,12 @@ WHERE
     = "where"
     ;
 
+FROM
+    = "from"
+    ;
+
 Path
-    = { (@PathSeg ("." @PathSeg)*)? #path }
+    = { (@PathSeg ("." @PathSeg)*)? #path } _
     ;
 
 PathSeg
@@ -43,7 +51,7 @@ SYMBOL
     ;
 
 PrimaryExpression
-    = (PathSeg / Number) _
+    = (Number / Path) _
     / '(' _ Expression _ ')' _
     ;
 
