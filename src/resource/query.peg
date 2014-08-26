@@ -1,47 +1,97 @@
 
 TopLevel
-    = WS Stmt WS
-    ;
-
-WS
-    = [ \t\n\r]*
+    = _ Stmt _
     ;
 
 Stmt
     = SelectStmt;
 
 SelectStmt
-    = Select WS <{ Path^ #select }>
+    = SELECT _ { @Path _ @WhereClause? #select }
     ;
 
-Select
-    = "SELECT" / "Select" / "select"
+WhereClause
+    = WHERE _ { @Expression #where }
     ;
 
-Where
-    = "WHERE" / "Where" / "where"
+SELECT
+    = "select"
+    ;
+
+WHERE
+    = "where"
     ;
 
 Path
-    = <{ (PathSeg^ ("." PathSeg^)*)? #path }>
+    = { (@PathSeg ("." @PathSeg)*)? #path }
     ;
 
 PathSeg
-    = <{ (Wildcard / Tag) #tag }>
+    = { (WILDCARD / TAG) #tag }
     ;
 
-Wildcard
+WILDCARD
     = "*"
     ;
 
-Tag
-    = "#" Symbol
+TAG
+    = "#" SYMBOL
     ;
 
-Symbol
+SYMBOL
     = [a-zA-Z_][a-zA-Z0-9_]*
     ;
 
+PrimaryExpression
+    = (PathSeg / Number) _
+    / '(' _ Expression _ ')' _
+    ;
+
+EQ
+    = '==' _ #eq
+    ;
+NEQ
+    = '!=' _ #neq
+    ;
+LE
+    = '<=' _ #le
+    ;
+GE
+    = '>=' _ #ge
+    ;
+LT
+    = '<' ![=] _ #lt
+    ;
+GT
+    = '>' ![=] _ #gt
+    ;
+
+RATIONAL
+    = EQ / NEQ / LE / GE / LT / GT
+    ;
+
+RelationalExpression
+    = PrimaryExpression {@ RATIONAL @PrimaryExpression }*
+    ;
+
+OR
+    = ('||' / 'or') _ #or
+    ;
+
+AND
+    = ('&&' / 'and') _ #and
+    ;
+
+ORExpression
+    = ANDExpression {@ OR ANDExpression^ }*
+    ;
+ANDExpression
+    = RelationalExpression {@ AND RelationalExpression^ }*
+    ;
+
+Expression
+    = ANDExpression
+    ;
 
 Number
     = <{ Minus? Int Frac? Exp? #number }>
