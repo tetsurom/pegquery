@@ -11,7 +11,11 @@ Persons
 	;
 
 Person
-	= BeginObject <{ Name^ ValueSep Id^ #person }> EndObject
+	= BeginObject <{ Name^ ValueSep Id^ (ValueSep NPerson^)? #person }> EndObject
+	;
+
+NPerson
+	= '"nperson"' MemberSep <{ Persons^ #nperson}>
 	;
 
 BeginObject
@@ -46,23 +50,47 @@ DoubleQuote
 	= '"'
 	;
 
-Number
-	= Minus? Int
-	;
-
-Minus
-	= '-'
-	;
-
-Int
-	= '0'
-	/ [1-9] [0-9]*
-	;
-
 Name
 	= '"name"' MemberSep <{ String^ #name }>
 	;
 
 Id
 	= '"id"' MemberSep <{ Number^ #id }>
+	;
+
+// Number literal definition
+Number
+	= Minus? Int Frac? Exp?
+	;
+
+Minus
+	= '-'
+	;
+Int
+	= Zero
+	/ Digit1_9 DIGIT*
+	;
+Zero
+	= '0'
+	;
+Digit1_9
+	= [1-9]
+	;
+DIGIT
+	= [0-9]
+	;
+Frac
+	= DecimalPoint DIGIT+
+	;
+DecimalPoint
+	= '.'
+	;
+Exp
+	= E (Minus / Plus)? DIGIT+
+	;
+E
+	= [eE]
+	;
+Plus
+	= '+'
 	;

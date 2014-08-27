@@ -14,7 +14,7 @@ public class Executor extends QueryVisitor<Object, Object> {
 			String[] path = (String[]) this.getPath(queryTree.get(0));
 			final List<ParsingObject> foundTreeList = new ArrayList<>();
 			ParsingObject targetObject = (ParsingObject) data.get();
-			this.findElement(foundTreeList, path, targetObject);
+			this.findSubTree(foundTreeList, path, targetObject);
 			final List<String> resultList = new ArrayList<>(foundTreeList.size());
 			foundTreeList.stream().forEach(s -> resultList.add(s.getText()));
 			return resultList;
@@ -23,7 +23,7 @@ public class Executor extends QueryVisitor<Object, Object> {
 			String[] path = (String[]) this.dispatch(queryTree.get(1), data);
 			final List<ParsingObject> foundTreeList = new ArrayList<>();
 			ParsingObject targetObject = (ParsingObject) data.get();
-			this.findElement(foundTreeList, path, targetObject);
+			this.findSubTree(foundTreeList, path, targetObject);
 			List<String> resultList = new ArrayList<>();
 			for(ParsingObject tree : foundTreeList) {
 				if((boolean) this.dispatch(queryTree.get(2), Optional.of(tree))) {
@@ -35,7 +35,7 @@ public class Executor extends QueryVisitor<Object, Object> {
 			}
 			return resultList;
 		}
-		throw new QueryExecutionException("illegal query: " + queryTree);
+		return null;
 	}
 
 	private String[] getPath(ParsingObject queryTree) {
@@ -47,39 +47,27 @@ public class Executor extends QueryVisitor<Object, Object> {
 		return path;
 	}
 
-	private void findElement(final List<ParsingObject> resultList, 
+	private void findSubTree(final List<ParsingObject> resultList, 
 			final String[] path, ParsingObject target) {
-		final int size = target.size();
-		for(int i = 0; i < size; i++) {
-			ParsingObject subObject = target.get(i);
-			if(subObject.is(path[0])) {
-				if(path.length == 1) {
-					resultList.add(subObject);
-				}
-				else {
-					this.findElementAt(resultList, path, 1, subObject);
-				}
-			}
-			else {
-				this.findElement(resultList, path, subObject);
-			}
-		}
+		this.findSubTreeAt(resultList, path, 0, target);
 	}
 
-	private void findElementAt(final List<ParsingObject> resultList, 
-			final String[] path, int curPathIndex, ParsingObject target) {
+	private void findSubTreeAt(final List<ParsingObject> resultList, 
+			final String[] path, final int curPathIndex, ParsingObject target) {
 		final int size = target.size();
 		for(int i = 0; i < size; i++) {
 			ParsingObject subObject = target.get(i);
 			if(subObject.is(path[curPathIndex])) {
 				if(path.length == curPathIndex + 1) {
 					resultList.add(subObject);
-					return;
+					this.findSubTree(resultList, path, subObject);
 				}
-				this.findElementAt(resultList, path, curPathIndex + 1, subObject);
+				else {
+					this.findSubTreeAt(resultList, path, curPathIndex + 1, subObject);
+				}
 			}
 			else {
-				this.findElement(resultList, path, subObject);
+				this.findSubTree(resultList, path, subObject);
 			}
 		}
 	}
@@ -87,7 +75,11 @@ public class Executor extends QueryVisitor<Object, Object> {
 	@SuppressWarnings("unchecked")
 	public List<String> execQuery(ParsingObject queryTree, ParsingObject targetObject) 
 			throws QueryExecutionException {
-		return (List<String>) this.dispatch(queryTree, Optional.of(targetObject));
+		List<String> resultList = (List<String>) this.dispatch(queryTree, Optional.of(targetObject));
+		if(resultList == null) {
+			throw new QueryExecutionException("illegal query:" + System.lineSeparator() + queryTree);
+		}
+		return resultList;
 	}
 
 	@Override
@@ -274,16 +266,7 @@ public class Executor extends QueryVisitor<Object, Object> {
 
 	@Override
 	public Object visitNum(ParsingObject queryTree, Optional<Object> data) {
-		String text = queryTree.getText();
-		try {
-			if(text.indexOf(".") == -1) {	// as long
-				return Long.parseLong(text);
-			}
-			return Double.parseDouble(text);	// as double
-		}
-		catch(NumberFormatException e) {
-		}
-		return null;
+		return this.asNumber(queryTree.getText());
 	}
 
 	private Number asNumber(Object value) {
@@ -296,9 +279,9 @@ public class Executor extends QueryVisitor<Object, Object> {
 		String str = (String) value;
 		try {
 			if(str.indexOf(".") == -1) {
-				return Long.parseLong(str);
+				return Long.parseLong(str);	// as long
 			}
-			return Double.parseDouble(str);
+			return Double.parseDouble(str);	// as double
 		}
 		catch(NumberFormatException e) {
 		}
