@@ -1,33 +1,34 @@
 
 TopLevel
-    = _ Stmt _
+    = _ Statement _
     ;
 
-Stmt
-    = SelectStmt;
+Statement
+    = SelectStatement
+    ;
 
-SelectStmt
-    = SELECT _ { @Path @FromClause? @WhereClause? #select }
+SelectStatement
+    = SELECT { @Expression @FromClause? @WhereClause? #select }
     ;
 
 WhereClause
-    = WHERE _ { @Expression #where } _
+    = WHERE { @Expression #where } _
     ;
 
 FromClause
-    = FROM _ { @Path #from } _
+    = FROM { @Path #from } _
     ;
 
 SELECT
-    = "select"
+    = "select" !NCHAR _
     ;
 
 WHERE
-    = "where"
+    = "where" !NCHAR _
     ;
 
 FROM
-    = "from"
+    = "from" !NCHAR _
     ;
 
 Path
@@ -35,7 +36,23 @@ Path
     ;
 
 PathSeg
-    = { (WILDCARD / TAG) #tag }
+    = { @PathName @Index? #tag }
+    ;
+
+PathName
+    = { (WILDCARD / TAG) #name }
+    ;
+
+Index
+    = '[' _ (Range / NumberList) _ ']' _
+    ;
+
+Range
+    = { @Number _ '..' _ @Number #range }
+    ;
+
+NumberList
+    = { (@Number (COMMA @Number)*)? #indexlist } _
     ;
 
 WILDCARD
@@ -51,8 +68,16 @@ SYMBOL
     ;
 
 PrimaryExpression
-    = (Number / Path) _
+    = ( Number / String / FuncCall / Path ) _
     / '(' _ Expression _ ')' _
+    ;
+
+FuncCall
+    = { @SYMBOL _ '(' @ArgumentList ')' #call } _ 
+    ;
+
+ArgumentList
+    = { (@Expression (COMMA @Expression)*)? #arguments } _
     ;
 
 EQ
@@ -68,10 +93,10 @@ GE
     = '>=' _ #ge
     ;
 LT
-    = '<' ![=] _ #lt
+    = '<' !'=' _ #lt
     ;
 GT
-    = '>' ![=] _ #gt
+    = '>' !'=' _ #gt
     ;
 
 RATIONAL
@@ -83,26 +108,67 @@ RelationalExpression
     ;
 
 OR
-    = ('||' / 'or') _ #or
+    = ('||' / 'or' !NCHAR) _ #or
     ;
 
 AND
-    = ('&&' / 'and') _ #and
+    = ('&&' / 'and' !NCHAR) _ #and
     ;
 
-ORExpression
-    = ANDExpression {@ OR ANDExpression^ }*
+AndExpression
+    = RelationalExpression {@ AND @RelationalExpression }*
     ;
-ANDExpression
-    = RelationalExpression {@ AND RelationalExpression^ }*
+
+OrExpression
+    = AndExpression {@ OR @AndExpression }*
+    ;
+
+COMMA
+    = ',' _
+    ;
+
+CommaExpression
+    = OrExpression {@ COMMA @OrExpression }*
     ;
 
 Expression
-    = ANDExpression
+    = CommaExpression
+    ;
+
+NCHAR
+    = [a-zA-Z0-9_]
+    / [A-Z]
+    / [0-9]
+    / [_]
+    ;
+
+String
+    = StringDouble
+    / StringSingle
+    ;
+
+StringDouble
+    = DQUOTE { (!DQUOTE SCHAR)* #string } DQUOTE
+    ;
+
+StringSingle
+    = SQUOTE { (!SQUOTE SCHAR)* #string } SQUOTE
+    ;
+
+SCHAR
+    = '\\\\' `\\`/ '\\"' `"`/ "\\'" `'`/ .
+    ;
+
+DQUOTE
+    = '"'
+    ;
+
+SQUOTE
+    = "'"
     ;
 
 Number
-    = <{ Minus? Int Frac? Exp? #number }>
+    = { Minus? Int Frac? Exp? #number }
     ;
 Minus
     = '-'
