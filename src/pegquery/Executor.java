@@ -42,7 +42,11 @@ public class Executor extends QueryVisitor<Object, Object> {
 		final int size = queryTree.size();
 		String[] path = new String[size];
 		for(int i = 0; i < size; i++) {
-			path[i] = queryTree.get(i).getText();
+			String tag = queryTree.get(i).getText();
+			if(!tag.startsWith("#")) {
+				tag = "#" + tag;
+			}
+			path[i] = tag;
 		}
 		return path;
 	}
@@ -84,11 +88,7 @@ public class Executor extends QueryVisitor<Object, Object> {
 
 	@Override
 	public Object visitPath(ParsingObject queryTree, Optional<Object> data) {	// get matched value
-		final int size = queryTree.size();
-		String[] path = new String[size];
-		for(int i = 0; i < size; i++) {
-			path[i] = queryTree.get(i).getText();
-		}
+		final String[] path = this.getPath(queryTree);
 		ParsingObject target = (ParsingObject) data.get();
 		for(String tag : path) {
 			final int childSize = target.size();
