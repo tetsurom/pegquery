@@ -9,8 +9,11 @@ import org.peg4d.ParsingObject;
 public class Executor extends QueryVisitor<Object, Object> {
 	@Override
 	public Object visitSelect(ParsingObject queryTree, Optional<Object> data) {
-		int size = queryTree.size();
-		if(size == 1) {
+		ParsingObject fromTree = this.getChildAt(queryTree, "from");
+		ParsingObject whereTree = this.getChildAt(queryTree, "where");
+
+		// select 
+		if(fromTree == null && whereTree == null) {
 			String[] path = (String[]) this.getPath(queryTree.get(0));
 			final List<ParsingObject> foundTreeList = new ArrayList<>();
 			ParsingObject targetObject = (ParsingObject) data.get();
@@ -19,17 +22,30 @@ public class Executor extends QueryVisitor<Object, Object> {
 			foundTreeList.stream().forEach(s -> resultList.add(s.getText()));
 			return resultList;
 		}
-		else if(size == 3) {
-			String[] path = (String[]) this.dispatch(queryTree.get(1), data);
+
+		// select [from, (where)]
+		if(fromTree != null) {
+			String[] path = (String[]) this.dispatch(fromTree, data);
 			final List<ParsingObject> foundTreeList = new ArrayList<>();
 			ParsingObject targetObject = (ParsingObject) data.get();
 			this.findSubTree(foundTreeList, path, targetObject);
 			List<String> resultList = new ArrayList<>();
-			for(ParsingObject tree : foundTreeList) {
-				if((boolean) this.dispatch(queryTree.get(2), Optional.of(tree))) {
+
+			if(whereTree == null) {	// select [from]
+				for(ParsingObject tree : foundTreeList) {
 					Object result = this.dispatch(queryTree.get(0), Optional.of(tree));
 					if(result instanceof String) {
 						resultList.add((String) result);
+					}
+				}
+			}
+			else {	// select [from, where]
+				for(ParsingObject tree : foundTreeList) {
+					if((boolean) this.dispatch(queryTree.get(2), Optional.of(tree))) {
+						Object result = this.dispatch(queryTree.get(0), Optional.of(tree));
+						if(result instanceof String) {
+							resultList.add((String) result);
+						}
 					}
 				}
 			}
@@ -86,6 +102,7 @@ public class Executor extends QueryVisitor<Object, Object> {
 		return resultList;
 	}
 
+	// FIXME: support duplicated tag
 	@Override
 	public Object visitPath(ParsingObject queryTree, Optional<Object> data) {	// get matched value
 		final String[] path = this.getPath(queryTree);

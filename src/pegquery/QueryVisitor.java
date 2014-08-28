@@ -30,6 +30,36 @@ public abstract class QueryVisitor <R, T> {
 		this.dispatchMap.put("#number", this::visitNum);
 	}
 
+	/**
+	 * 
+	 * @param parent
+	 * @param tag
+	 * @return
+	 * may be null
+	 */
+	protected ParsingObject getChildAt(final ParsingObject parent, String tag) {
+		if(!tag.startsWith("#")) {
+			tag = "#" + tag;
+		}
+
+		final int size = parent.size();
+		for(int i = 0; i < size; i++) {
+			ParsingObject chid = parent.get(i);
+			if(chid.is(tag)) {
+				return chid;
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * lookup method from dispatchMap and invoke.
+	 * @param tree
+	 * @param data
+	 * not null
+	 * @return
+	 * return value of looked up method
+	 */
 	protected R dispatch(ParsingObject tree, Optional<T> data) {
 		BiFunction<ParsingObject, Optional<T>, R> func = this.dispatchMap.get(tree.getTag());
 		if(func == null) {
