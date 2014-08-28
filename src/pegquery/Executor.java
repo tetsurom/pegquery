@@ -2,13 +2,12 @@ package pegquery;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import org.peg4d.ParsingObject;
 
-public class Executor extends QueryVisitor<Object, Object> {
+public class Executor extends QueryVisitor<Object, ParsingObject> {
 	@Override
-	public Object visitSelect(ParsingObject queryTree, Optional<Object> data) {
+	public Object visitSelect(ParsingObject queryTree, ParsingObject data) {
 		ParsingObject fromTree = this.getChildAt(queryTree, "from");
 		ParsingObject whereTree = this.getChildAt(queryTree, "where");
 
@@ -16,8 +15,7 @@ public class Executor extends QueryVisitor<Object, Object> {
 		if(fromTree == null && whereTree == null) {
 			String[] path = (String[]) this.getPath(queryTree.get(0));
 			final List<ParsingObject> foundTreeList = new ArrayList<>();
-			ParsingObject targetObject = (ParsingObject) data.get();
-			this.findSubTree(foundTreeList, path, targetObject);
+			this.findSubTree(foundTreeList, path, data);
 			final List<String> resultList = new ArrayList<>(foundTreeList.size());
 			foundTreeList.stream().forEach(s -> resultList.add(s.getText()));
 			return resultList;
@@ -25,15 +23,13 @@ public class Executor extends QueryVisitor<Object, Object> {
 
 		// select [from, (where)]
 		if(fromTree != null) {
-			String[] path = (String[]) this.dispatch(fromTree, data);
-			final List<ParsingObject> foundTreeList = new ArrayList<>();
-			ParsingObject targetObject = (ParsingObject) data.get();
-			this.findSubTree(foundTreeList, path, targetObject);
+			@SuppressWarnings("unchecked")
+			List<ParsingObject> foundTreeList = (List<ParsingObject>) this.dispatch(fromTree, data);
 			List<String> resultList = new ArrayList<>();
 
 			if(whereTree == null) {	// select [from]
 				for(ParsingObject tree : foundTreeList) {
-					Object result = this.dispatch(queryTree.get(0), Optional.of(tree));
+					Object result = this.dispatch(queryTree.get(0), tree);
 					if(result instanceof String) {
 						resultList.add((String) result);
 					}
@@ -41,8 +37,8 @@ public class Executor extends QueryVisitor<Object, Object> {
 			}
 			else {	// select [from, where]
 				for(ParsingObject tree : foundTreeList) {
-					if((boolean) this.dispatch(queryTree.get(2), Optional.of(tree))) {
-						Object result = this.dispatch(queryTree.get(0), Optional.of(tree));
+					if((boolean) this.dispatch(whereTree, tree)) {
+						Object result = this.dispatch(queryTree.get(0), tree);
 						if(result instanceof String) {
 							resultList.add((String) result);
 						}
@@ -92,10 +88,21 @@ public class Executor extends QueryVisitor<Object, Object> {
 		}
 	}
 
+	/**
+	 * 
+	 * @param queryTree
+	 * not null
+	 * @param targetObject
+	 * not null
+	 * @return
+	 * @throws QueryExecutionException
+	 */
 	@SuppressWarnings("unchecked")
 	public List<String> execQuery(ParsingObject queryTree, ParsingObject targetObject) 
 			throws QueryExecutionException {
-		List<String> resultList = (List<String>) this.dispatch(queryTree, Optional.of(targetObject));
+		assert queryTree != null;
+		assert targetObject != null;
+		List<String> resultList = (List<String>) this.dispatch(queryTree, targetObject);
 		if(resultList == null) {
 			throw new QueryExecutionException("illegal query:" + System.lineSeparator() + queryTree);
 		}
@@ -104,9 +111,9 @@ public class Executor extends QueryVisitor<Object, Object> {
 
 	// FIXME: support duplicated tag
 	@Override
-	public Object visitPath(ParsingObject queryTree, Optional<Object> data) {	// get matched value
+	public Object visitPath(ParsingObject queryTree, ParsingObject data) {	// get matched value
 		final String[] path = this.getPath(queryTree);
-		ParsingObject target = (ParsingObject) data.get();
+		ParsingObject target = data;
 		for(String tag : path) {
 			final int childSize = target.size();
 			boolean found = false;
@@ -125,7 +132,7 @@ public class Executor extends QueryVisitor<Object, Object> {
 	}
 
 	@Override
-	public Object visitError(ParsingObject queryTree, Optional<Object> data) {
+	public Object visitError(ParsingObject queryTree, ParsingObject data) {
 		throw new QueryExecutionException("invalid query:" + System.lineSeparator() + queryTree);
 	}
 
@@ -138,17 +145,20 @@ public class Executor extends QueryVisitor<Object, Object> {
 	}
 
 	@Override
-	public Object visitFrom(ParsingObject queryTree, Optional<Object> data) {
-		return this.getPath(queryTree.get(0));
+	public Object visitFrom(ParsingObject queryTree, ParsingObject data) {
+		String[] path = this.getPath(queryTree.get(0));
+		final List<ParsingObject> foundTreeList = new ArrayList<>();
+		this.findSubTree(foundTreeList, path, data);
+		return foundTreeList;
 	}
 
 	@Override
-	public Object visitWhere(ParsingObject queryTree, Optional<Object> data) {
+	public Object visitWhere(ParsingObject queryTree, ParsingObject data) {
 		return this.dispatch(queryTree.get(0), data);
 	}
 
 	@Override
-	public Object visitAnd(ParsingObject queryTree, Optional<Object> data) {
+	public Object visitAnd(ParsingObject queryTree, ParsingObject data) {
 		Object left = this.dispatch(queryTree.get(0), data);
 		if((left instanceof Boolean) && (Boolean) left) {
 			Object right = this.dispatch(queryTree.get(1), data);
@@ -158,7 +168,7 @@ public class Executor extends QueryVisitor<Object, Object> {
 	}
 
 	@Override
-	public Object visitOr(ParsingObject queryTree, Optional<Object> data) {
+	public Object visitOr(ParsingObject queryTree, ParsingObject data) {
 		Object left = this.dispatch(queryTree.get(0), data);
 		if((left instanceof Boolean) && (Boolean) left) {
 			return true;
@@ -168,7 +178,7 @@ public class Executor extends QueryVisitor<Object, Object> {
 	}
 
 	@Override
-	public Object visitEQ(ParsingObject queryTree, Optional<Object> data) {
+	public Object visitEQ(ParsingObject queryTree, ParsingObject data) {
 		Number left = this.asNumber(this.dispatch(queryTree.get(0), data));
 		Number right = this.asNumber(this.dispatch(queryTree.get(1), data));
 		if((left instanceof Long) && (right instanceof Long)) {
@@ -187,7 +197,7 @@ public class Executor extends QueryVisitor<Object, Object> {
 	}
 
 	@Override
-	public Object visitNEQ(ParsingObject queryTree, Optional<Object> data) {
+	public Object visitNEQ(ParsingObject queryTree, ParsingObject data) {
 		Number left = this.asNumber(this.dispatch(queryTree.get(0), data));
 		Number right = this.asNumber(this.dispatch(queryTree.get(1), data));
 		if((left instanceof Long) && (right instanceof Long)) {
@@ -206,7 +216,7 @@ public class Executor extends QueryVisitor<Object, Object> {
 	}
 
 	@Override
-	public Object visitLE(ParsingObject queryTree, Optional<Object> data) {
+	public Object visitLE(ParsingObject queryTree, ParsingObject data) {
 		Number left = this.asNumber(this.dispatch(queryTree.get(0), data));
 		Number right = this.asNumber(this.dispatch(queryTree.get(1), data));
 		if((left instanceof Long) && (right instanceof Long)) {
@@ -225,7 +235,7 @@ public class Executor extends QueryVisitor<Object, Object> {
 	}
 
 	@Override
-	public Object visitGE(ParsingObject queryTree, Optional<Object> data) {
+	public Object visitGE(ParsingObject queryTree, ParsingObject data) {
 		Number left = this.asNumber(this.dispatch(queryTree.get(0), data));
 		Number right = this.asNumber(this.dispatch(queryTree.get(1), data));
 		if((left instanceof Long) && (right instanceof Long)) {
@@ -244,7 +254,7 @@ public class Executor extends QueryVisitor<Object, Object> {
 	}
 
 	@Override
-	public Object visitLT(ParsingObject queryTree, Optional<Object> data) {
+	public Object visitLT(ParsingObject queryTree, ParsingObject data) {
 		Number left = this.asNumber(this.dispatch(queryTree.get(0), data));
 		Number right = this.asNumber(this.dispatch(queryTree.get(1), data));
 		if((left instanceof Long) && (right instanceof Long)) {
@@ -263,7 +273,7 @@ public class Executor extends QueryVisitor<Object, Object> {
 	}
 
 	@Override
-	public Object visitGT(ParsingObject queryTree, Optional<Object> data) {
+	public Object visitGT(ParsingObject queryTree, ParsingObject data) {
 		Number left = this.asNumber(this.dispatch(queryTree.get(0), data));
 		Number right = this.asNumber(this.dispatch(queryTree.get(1), data));
 		if((left instanceof Long) && (right instanceof Long)) {
@@ -282,7 +292,7 @@ public class Executor extends QueryVisitor<Object, Object> {
 	}
 
 	@Override
-	public Object visitNum(ParsingObject queryTree, Optional<Object> data) {
+	public Object visitNum(ParsingObject queryTree, ParsingObject data) {
 		return this.asNumber(queryTree.getText());
 	}
 

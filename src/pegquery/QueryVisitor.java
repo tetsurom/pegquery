@@ -2,13 +2,12 @@ package pegquery;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.BiFunction;
 
 import org.peg4d.ParsingObject;
 
 public abstract class QueryVisitor <R, T> {
-	protected final Map<String, BiFunction<ParsingObject, Optional<T>, R>> dispatchMap;
+	protected final Map<String, BiFunction<ParsingObject, T, R>> dispatchMap;
 
 	protected QueryVisitor() {
 		this.dispatchMap = new HashMap<>();
@@ -56,33 +55,33 @@ public abstract class QueryVisitor <R, T> {
 	 * lookup method from dispatchMap and invoke.
 	 * @param tree
 	 * @param data
-	 * not null
+	 * may be null
 	 * @return
 	 * return value of looked up method
 	 */
-	protected R dispatch(ParsingObject tree, Optional<T> data) {
-		BiFunction<ParsingObject, Optional<T>, R> func = this.dispatchMap.get(tree.getTag());
+	protected R dispatch(ParsingObject tree, T data) {
+		BiFunction<ParsingObject, T, R> func = this.dispatchMap.get(tree.getTag());
 		if(func == null) {
 			throw new RuntimeException("undefined action: " + tree.getTag());
 		}
 		return func.apply(tree, data);
 	}
 
-	public abstract R visitSelect(ParsingObject queryTree, Optional<T> data);
-	public abstract R visitPath  (ParsingObject queryTree, Optional<T> data);
-	public abstract R visitError (ParsingObject queryTree, Optional<T> data);
-	public abstract R visitFrom  (ParsingObject queryTree, Optional<T> data);
-	public abstract R visitWhere (ParsingObject queryTree, Optional<T> data);
+	public abstract R visitSelect(ParsingObject queryTree, T data);
+	public abstract R visitPath  (ParsingObject queryTree, T data);
+	public abstract R visitError (ParsingObject queryTree, T data);
+	public abstract R visitFrom  (ParsingObject queryTree, T data);
+	public abstract R visitWhere (ParsingObject queryTree, T data);
 
 	// conditional expression
-	public abstract R visitAnd   (ParsingObject queryTree, Optional<T> data);
-	public abstract R visitOr    (ParsingObject queryTree, Optional<T> data);
-	public abstract R visitEQ    (ParsingObject queryTree, Optional<T> data);
-	public abstract R visitNEQ   (ParsingObject queryTree, Optional<T> data);
-	public abstract R visitLE    (ParsingObject queryTree, Optional<T> data);
-	public abstract R visitGE    (ParsingObject queryTree, Optional<T> data);
-	public abstract R visitLT    (ParsingObject queryTree, Optional<T> data);
-	public abstract R visitGT    (ParsingObject queryTree, Optional<T> data);
+	public abstract R visitAnd   (ParsingObject queryTree, T data);
+	public abstract R visitOr    (ParsingObject queryTree, T data);
+	public abstract R visitEQ    (ParsingObject queryTree, T data);
+	public abstract R visitNEQ   (ParsingObject queryTree, T data);
+	public abstract R visitLE    (ParsingObject queryTree, T data);
+	public abstract R visitGE    (ParsingObject queryTree, T data);
+	public abstract R visitLT    (ParsingObject queryTree, T data);
+	public abstract R visitGT    (ParsingObject queryTree, T data);
 
-	public abstract R visitNum   (ParsingObject queryTree, Optional<T> data);
+	public abstract R visitNum   (ParsingObject queryTree, T data);
 }
