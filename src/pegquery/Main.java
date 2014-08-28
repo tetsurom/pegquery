@@ -22,6 +22,8 @@ public class Main {	//TODO: pipe line mode
 	private static boolean verboseQuery = false;
 	private static boolean verboseData = false;
 
+	private static boolean time = false;
+
 	public static void main(String[] args) {
 		/**
 		 * parse argument
@@ -39,7 +41,9 @@ public class Main {	//TODO: pipe line mode
 		.addOption("vd", "verbose:data", false, "display parsed data", 
 				s -> verboseData = true)
 		.addOption("vq", "verbose:query", false, "display parsed query", 
-				s -> verboseQuery = true);
+				s -> verboseQuery = true)
+		.addOption(null, "time", false, "display query execution time", 
+				s -> time = true);
 
 		try {
 			argsParser.parseAndInvokeAction(args);
@@ -57,9 +61,9 @@ public class Main {	//TODO: pipe line mode
 		ParsingObject parsedObject = p.parseNode(defaultStartPoint);	//FIXME
 
 		if(verboseData) {
-			System.out.println("parsed data:");
-			System.out.println(parsedObject);
-			System.out.println("");
+			System.err.println("parsed data:");
+			System.err.println(parsedObject);
+			System.err.println("");
 		}
 		if(parsedObject.isFailure() || parsedObject.is("#error")) {
 			System.err.println(parsedObject);
@@ -71,7 +75,9 @@ public class Main {	//TODO: pipe line mode
 		 */
 		Grammar queryPeg = Grammar.load(new GrammarComposer(), pegDef4Query);
 		if(queryScript.isPresent()) {
-			//TODO: load query script
+			boolean result = parseAndRunQuery(new Executor(), queryPeg, 
+					org.peg4d.Main.loadSource(peg, queryScript.get()), parsedObject);
+			System.exit(result ? 0 : 1);
 		}
 		else {
 			Shell shell = new Shell();
@@ -82,20 +88,38 @@ public class Main {	//TODO: pipe line mode
 					continue;
 				}
 				ParsingSource source = Helper.loadLine(queryPeg, "(stdin)", resultPair.getRight(), resultPair.getLeft());
-				ParserContext queryParserContext = queryPeg.newParserContext(source);
-				ParsingObject queryTree = queryParserContext.parseNode(defaultStartPoint);
-				if(verboseQuery) {
-					System.out.println("Parsed: " + queryTree);
-				}
-				try {
-					List<String> resultList = executor.execQuery(queryTree, parsedObject);
-					resultList.stream().forEach(System.out::println);
-				}
-				catch(QueryExecutionException e) {
-					System.err.println(e.getMessage());
-				}
+				parseAndRunQuery(executor, queryPeg, source, parsedObject);
 			}
 			System.out.println("");
 		}
+	}
+
+	private static boolean parseAndRunQuery(Executor executor, Grammar queryPeg, ParsingSource source, ParsingObject target) {
+		ParserContext queryParserContext = queryPeg.newParserContext(source);
+		ParsingObject queryTree = queryParserContext.parseNode(defaultStartPoint);
+		if(verboseQuery) {
+			System.err.println("parsed query:");
+			System.err.println(queryTree);
+		}
+		try {
+			long start = 0;
+			long stop = 0;
+			if(time) {
+				start = System.nanoTime();
+			}
+
+			List<String> resultList = executor.execQuery(queryTree, target);
+
+			if(time) {
+				stop = System.nanoTime();
+				System.err.println("query execution time: " + (stop - start) + "ns");
+			}
+			resultList.stream().forEach(System.out::println);
+			return true;
+		}
+		catch(QueryExecutionException e) {
+			System.err.println(e.getMessage());
+		}
+		return false;
 	}
 }
