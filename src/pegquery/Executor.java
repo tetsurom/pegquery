@@ -109,9 +109,8 @@ public class Executor extends QueryVisitor<Object, ParsingObject> {
 		return resultList;
 	}
 
-	// FIXME: support duplicated tag
 	@Override
-	public Object visitPath(ParsingObject queryTree, ParsingObject data) {	// get matched value
+	public Object visitPath(ParsingObject queryTree, ParsingObject data) {	//TODO:
 		final String[] path = this.getPath(queryTree);
 		ParsingObject target = data;
 		for(String tag : path) {
@@ -145,7 +144,7 @@ public class Executor extends QueryVisitor<Object, ParsingObject> {
 	}
 
 	@Override
-	public Object visitFrom(ParsingObject queryTree, ParsingObject data) {
+	public Object visitFrom(ParsingObject queryTree, ParsingObject data) {	//TODO:
 		String[] path = this.getPath(queryTree.get(0));
 		final List<ParsingObject> foundTreeList = new ArrayList<>();
 		this.findSubTree(foundTreeList, path, data);
@@ -353,22 +352,7 @@ public class Executor extends QueryVisitor<Object, ParsingObject> {
 
 	@Override
 	public Object visitString(ParsingObject queryTree, ParsingObject data) {	//FIXME: escape sequence
-		String tokenText = queryTree.getText();
-		final int size = tokenText.length();
-		StringBuilder sBuilder = new StringBuilder(size);
-		for(int i = 0; i < size; i++) {
-			char ch = tokenText.charAt(i);
-			if(ch == '\\' && i + 1 < size) {
-				char nextCh = tokenText.charAt(++i);
-				switch(tokenText.charAt(++i)) {
-				case 'n': ch = '\n'; break;
-				case 't': ch = '\t'; break;
-				case 'r': ch = '\r'; break;
-				default: ch = nextCh; break;
-				}
-			}
-			sBuilder.append(ch);
-		}
-		return sBuilder.toString();
+		String text = queryTree.getText();
+		return text.substring(1, text.length() - 1);
 	}
 }
