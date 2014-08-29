@@ -108,13 +108,13 @@ public class Main {	//TODO: pipe line mode
 				start = System.nanoTime();
 			}
 
-			List<String> resultList = executor.execQuery(queryTree, target);
+			List<ParsingObject> resultList = executor.execQuery(queryTree, target);
 
 			if(time) {
 				stop = System.nanoTime();
 				System.err.println("query execution time: " + (stop - start) + "ns");
 			}
-			resultList.stream().forEach(System.out::println);
+			resultList.stream().forEach(t -> System.out.println(t.getText()));
 			return true;
 		}
 		catch(QueryExecutionException e) {

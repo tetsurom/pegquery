@@ -1,93 +1,15 @@
 package pegquery;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
+import org.peg4d.Helper;
 import org.peg4d.ParsingObject;
 
+import pegquery.Path.Segment;
+
 public class Executor extends QueryVisitor<Object, ParsingObject> {
-	@Override
-	public Object visitSelect(ParsingObject queryTree, ParsingObject data) {
-		ParsingObject fromTree = this.getChildAt(queryTree, "from");
-		ParsingObject whereTree = this.getChildAt(queryTree, "where");
-
-		// select 
-		if(fromTree == null && whereTree == null) {
-			String[] path = (String[]) this.getPath(queryTree.get(0));
-			final List<ParsingObject> foundTreeList = new ArrayList<>();
-			this.findSubTree(foundTreeList, path, data);
-			final List<String> resultList = new ArrayList<>(foundTreeList.size());
-			foundTreeList.stream().forEach(s -> resultList.add(s.getText()));
-			return resultList;
-		}
-
-		// select [from, (where)]
-		if(fromTree != null) {
-			@SuppressWarnings("unchecked")
-			List<ParsingObject> foundTreeList = (List<ParsingObject>) this.dispatch(fromTree, data);
-			List<String> resultList = new ArrayList<>();
-
-			if(whereTree == null) {	// select [from]
-				for(ParsingObject tree : foundTreeList) {
-					Object result = this.dispatch(queryTree.get(0), tree);
-					if(result instanceof String) {
-						resultList.add((String) result);
-					}
-				}
-			}
-			else {	// select [from, where]
-				for(ParsingObject tree : foundTreeList) {
-					if((boolean) this.dispatch(whereTree, tree)) {
-						Object result = this.dispatch(queryTree.get(0), tree);
-						if(result instanceof String) {
-							resultList.add((String) result);
-						}
-					}
-				}
-			}
-			return resultList;
-		}
-		return null;
-	}
-
-	private String[] getPath(ParsingObject queryTree) {
-		final int size = queryTree.size();
-		String[] path = new String[size];
-		for(int i = 0; i < size; i++) {
-			String tag = queryTree.get(i).getText();
-			if(!tag.startsWith("#")) {
-				tag = "#" + tag;
-			}
-			path[i] = tag;
-		}
-		return path;
-	}
-
-	private void findSubTree(final List<ParsingObject> resultList, 
-			final String[] path, ParsingObject target) {
-		this.findSubTreeAt(resultList, path, 0, target);
-	}
-
-	private void findSubTreeAt(final List<ParsingObject> resultList, 
-			final String[] path, final int curPathIndex, ParsingObject target) {
-		final int size = target.size();
-		for(int i = 0; i < size; i++) {
-			ParsingObject subObject = target.get(i);
-			if(subObject.is(path[curPathIndex])) {
-				if(path.length == curPathIndex + 1) {
-					resultList.add(subObject);
-					this.findSubTree(resultList, path, subObject);
-				}
-				else {
-					this.findSubTreeAt(resultList, path, curPathIndex + 1, subObject);
-				}
-			}
-			else {
-				this.findSubTree(resultList, path, subObject);
-			}
-		}
-	}
-
 	/**
 	 * 
 	 * @param queryTree
@@ -98,36 +20,112 @@ public class Executor extends QueryVisitor<Object, ParsingObject> {
 	 * @throws QueryExecutionException
 	 */
 	@SuppressWarnings("unchecked")
-	public List<String> execQuery(ParsingObject queryTree, ParsingObject targetObject) 
+	public List<ParsingObject> execQuery(ParsingObject queryTree, ParsingObject targetObject) 
 			throws QueryExecutionException {
 		assert queryTree != null;
 		assert targetObject != null;
-		List<String> resultList = (List<String>) this.dispatch(queryTree, targetObject);
-		if(resultList == null) {
-			throw new QueryExecutionException("illegal query:" + System.lineSeparator() + queryTree);
+		ParsingObject dummyRoot = Helper.dummyRoot(targetObject);
+		try {
+			List<ParsingObject> resultList = this.dispatchAndCast(queryTree, dummyRoot, List.class);
+			if(resultList == null) {
+				throw new QueryExecutionException("illegal query:" + System.lineSeparator() + queryTree);
+			}
+			return resultList;
 		}
-		return resultList;
+		catch(IllegalArgumentException e) {
+			QueryExecutionException.propagate(e);
+		}
+		return null;
 	}
 
 	@Override
-	public Object visitPath(ParsingObject queryTree, ParsingObject data) {	//TODO:
-		final String[] path = this.getPath(queryTree);
-		ParsingObject target = data;
-		for(String tag : path) {
-			final int childSize = target.size();
-			boolean found = false;
-			for(int i = 0; i < childSize; i++) {
-				if(target.get(i).is(tag)) {
-					found = true;
-					target = target.get(i);
-					break;
+	public Object visitSelect(ParsingObject queryTree, ParsingObject data) {
+		ParsingObject fromTree = this.getChildAt(queryTree, "from");
+		ParsingObject whereTree = this.getChildAt(queryTree, "where");
+
+		// select 
+		if(fromTree == null && whereTree == null) {
+			@SuppressWarnings("unchecked")
+			List<ParsingObject> resultList = this.dispatchAndCast(queryTree.get(0), data, List.class);
+			return resultList;
+		}
+
+		// select [from, (where)]
+		if(fromTree != null) {
+			@SuppressWarnings("unchecked")
+			List<ParsingObject> foundTreeList = this.dispatchAndCast(fromTree, data, List.class);
+			List<ParsingObject> resultList = new LinkedList<>();
+
+			if(whereTree == null) {	// select [from]
+				for(ParsingObject tree : foundTreeList) {
+					@SuppressWarnings("unchecked")
+					List<ParsingObject> treeList = this.dispatchAndCast(queryTree.get(0), tree, List.class);
+					resultList.addAll(treeList);
 				}
 			}
-			if(!found) {
-				return null;
+			else {	// select [from, where]
+				for(ParsingObject tree : foundTreeList) {
+					if((boolean) this.dispatch(whereTree, tree)) {
+						@SuppressWarnings("unchecked")
+						List<ParsingObject> treeList = this.dispatchAndCast(queryTree.get(0), tree, List.class);
+						resultList.addAll(treeList);
+					}
+				}
 			}
+			return resultList;
 		}
-		return target.getText();
+		return null;
+	}
+
+	/**
+	 * create path and evaluate. return List<ParsingObject>
+	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	public Object visitPath(ParsingObject queryTree, ParsingObject data) {
+		Path path = new Path(data.getParent() == null);
+		final int size = queryTree.size();
+		for(int i = 0; i < size; i++) {
+			ParsingObject child = queryTree.get(i);
+			if(!child.is("#tag")) {
+				throw new QueryExecutionException("illegal path:" + System.lineSeparator() + queryTree);
+			}
+			String segName = this.dispatchAndCast(child.get(0), data, String.class);
+			Segment segment = null;
+			switch(segName) {
+			case "/root":
+				segment = new Path.RootSegment();
+				break;
+			case "/decendant": {
+				child = queryTree.get(++i);
+				String nextSegName = this.dispatchAndCast(child.get(0), data, String.class);
+				if(nextSegName.equals("*")) {
+					segment = new Path.WildCardDescendantSegment();
+				}
+				else {
+					segment = new Path.DescendantSegment(nextSegName);
+				}
+				break;
+			}
+			case "*":
+				segment = new Path.WildCardSegment();
+				break;
+			default:
+				segment = new Path.TagNameSegment(segName);
+				break;
+			}
+			if(child.size() == 2) {
+				Object index = this.dispatch(child.get(1), data);
+				if(index instanceof Pair) {
+					segment = new Path.RangeSegment(segment, (Pair<Integer, Integer>) index);
+				}
+				else if(index instanceof List) {
+					segment = new Path.IndexListSegment(segment, (List<Integer>) index);
+				}
+			}
+			path.addSegment(segment);
+		}
+		return path.apply(data);
 	}
 
 	@Override
@@ -141,14 +139,23 @@ public class Executor extends QueryVisitor<Object, ParsingObject> {
 		public QueryExecutionException(String message) {
 			super(message);
 		}
+
+		private QueryExecutionException(Throwable cause) {
+			super(cause);
+		}
+
+		public static QueryExecutionException propagate(Throwable cause) 
+				throws QueryExecutionException {
+			if(cause instanceof QueryExecutionException) {
+				throw (QueryExecutionException) cause;
+			}
+			throw new QueryExecutionException(cause);
+		}
 	}
 
 	@Override
-	public Object visitFrom(ParsingObject queryTree, ParsingObject data) {	//TODO:
-		String[] path = this.getPath(queryTree.get(0));
-		final List<ParsingObject> foundTreeList = new ArrayList<>();
-		this.findSubTree(foundTreeList, path, data);
-		return foundTreeList;
+	public Object visitFrom(ParsingObject queryTree, ParsingObject data) {
+		return this.dispatch(queryTree.get(0), data);
 	}
 
 	@Override
@@ -295,6 +302,7 @@ public class Executor extends QueryVisitor<Object, ParsingObject> {
 		return this.asNumber(queryTree.getText());
 	}
 
+	@SuppressWarnings("unchecked")
 	private Number asNumber(Object value) {
 		if(value == null) {
 			return null;
@@ -302,7 +310,16 @@ public class Executor extends QueryVisitor<Object, ParsingObject> {
 		if(value instanceof Number) {
 			return (Number) value;
 		}
-		String str = (String) value;
+		String str = null;
+		if(value instanceof List) {
+			str = ((List<ParsingObject>) value).get(0).getText();
+		}
+		else if(value instanceof ParsingObject) {
+			str = ((ParsingObject) value).getText();
+		}
+		else if(value instanceof String) {
+			str = (String) value;
+		}
 		try {
 			if(str.indexOf(".") == -1) {
 				return Long.parseLong(str);	// as long
@@ -315,27 +332,25 @@ public class Executor extends QueryVisitor<Object, ParsingObject> {
 	}
 
 	@Override
-	public Object visitTag(ParsingObject queryTree, ParsingObject data) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
 	public Object visitName(ParsingObject queryTree, ParsingObject data) {
-		// TODO Auto-generated method stub
-		return null;
+		return queryTree.getText();
 	}
 
 	@Override
 	public Object visitRange(ParsingObject queryTree, ParsingObject data) {
-		// TODO Auto-generated method stub
-		return null;
+		Number left = this.dispatchAndCast(queryTree.get(0), data, Number.class);
+		Number right = this.dispatchAndCast(queryTree.get(1), data, Number.class);
+		return new Pair<Integer, Integer>(left.intValue(), right.intValue());
 	}
 
 	@Override
 	public Object visitIndex(ParsingObject queryTree, ParsingObject data) {
-		// TODO Auto-generated method stub
-		return null;
+		final int size = queryTree.size();
+		List<Integer> indexList = new ArrayList<>(size);
+		for(int i = 0; i < size; i++) {
+			indexList.add(this.dispatchAndCast(queryTree.get(i), data, Number.class).intValue());
+		}
+		return indexList;
 	}
 
 	@Override

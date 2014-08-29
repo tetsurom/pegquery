@@ -72,6 +72,13 @@ public class Path {
 			return this.tag;
 		}
 
+		protected static String resolveTag(String tagName) {
+			if(!tagName.startsWith("#")) {
+				tagName = "#"+ tagName;
+			}
+			return tagName;
+		}
+
 		public abstract List<ParsingObject> match(final ParsingObject target);
 	}
 
@@ -98,7 +105,7 @@ public class Path {
 	 */
 	public static class TagNameSegment extends Segment {
 		public TagNameSegment(String name) {
-			super(name);
+			super(resolveTag(name));
 		}
 
 		@Override
@@ -143,7 +150,7 @@ public class Path {
 	 */
 	public static class DescendantSegment extends Segment {
 		public DescendantSegment(String name) {
-			super("/decendant " + name);
+			super(resolveTag(name));
 		}
 
 		@Override
@@ -163,6 +170,11 @@ public class Path {
 				this.findAllMatchedDescendant(resultList, child);
 			}
 		}
+
+		@Override
+		public String toString() {
+			return "/descendant " + this.tag;
+		}
 	}
 
 	/**
@@ -170,8 +182,8 @@ public class Path {
 	 * @author skgchxngsxyz-osx
 	 *
 	 */
-	public static class WhildCardDescendantSegment extends Segment {
-		public WhildCardDescendantSegment() {
+	public static class WildCardDescendantSegment extends Segment {
+		public WildCardDescendantSegment() {
 			super("/decendant *");
 		}
 
@@ -233,6 +245,10 @@ public class Path {
 		private final Segment targetSegment;
 		private final int startIndex;	// include
 		private final int stopIndex;	// exclude
+
+		public RangeSegment(Segment targetSegment, Pair<Integer, Integer> rangePair) {
+			this(targetSegment, rangePair.getLeft(), rangePair.getRight());
+		}
 
 		public RangeSegment(Segment targetSegment, int startIndex, int stopIndex) {
 			super("range[" + startIndex + ".." + stopIndex + "]");
