@@ -32,15 +32,43 @@ FROM
     ;
 
 Path
-    = { (@PathSeg ("." @PathSeg)*)? #path } _
+    = AbsolutePath / RelativePath
+    ;
+
+RelativePath
+    = { @PathSeg (DELIM @AbbrevatedPathSeg)* #path } _
+    ;
+
+AbsolutePath
+    = { @RootPathSeg ( @AbbrevatedPathSeg (DELIM @AbbrevatedPathSeg)*)? #path } _
+    ;
+
+AbbrevatedPathSeg
+    = @DecendantPathSeg? @PathSeg
     ;
 
 PathSeg
     = { @PathName @Index? #tag }
     ;
 
+RootPathSeg
+    = { @RootPathName #tag }
+    ;
+
+DecendantPathSeg
+    = { @DecendantPathName #tag }
+    ;
+
 PathName
     = { (WILDCARD / TAG) #name }
+    ;
+
+RootPathName
+    = { DELIM `/root`#name }
+    ;
+
+DecendantPathName
+    = { DELIM `/decendant`#name }
     ;
 
 Index
@@ -57,6 +85,10 @@ NumberList
 
 WILDCARD
     = "*"
+    ;
+
+DELIM
+    = "/"
     ;
 
 TAG
@@ -83,18 +115,23 @@ ArgumentList
 EQ
     = '==' _ #eq
     ;
+
 NEQ
     = '!=' _ #neq
     ;
+
 LE
     = '<=' _ #le
     ;
+
 GE
     = '>=' _ #ge
     ;
+
 LT
     = '<' !'=' _ #lt
     ;
+
 GT
     = '>' !'=' _ #gt
     ;
@@ -156,7 +193,11 @@ StringSingle
     ;
 
 SCHAR
-    = '\\\\' `\\`/ '\\"' `"`/ "\\'" `'`/ .
+    = ESCAPED / .
+    ;
+
+ESCAPED
+    = '\\\\' `\\`/ '\\"' `"`/ "\\'" `'`
     ;
 
 DQUOTE
@@ -168,36 +209,49 @@ SQUOTE
     ;
 
 Number
-    = { Minus? Int Frac? Exp? #number }
+    = { MINUS? INT FRAC? EXP? #number }
     ;
-Minus
-    = '-'
+
+INT
+    = ZERO / DIGIT1_9 DIGIT*
     ;
-Int
-    = Zero
-    / Digit1_9 DIGIT*
+
+FRAC
+    = POINT DIGIT+
     ;
-Zero
-    = '0'
-    ;
-Digit1_9
-    = [1-9]
-    ;
-DIGIT
-    = [0-9]
-    ;
-Frac
-    = DecimalPoint DIGIT+
-    ;
-DecimalPoint
+
+POINT
     = '.'
     ;
-Exp
-    = E (Minus / Plus)? DIGIT+
+
+EXP
+    = E SIGN? DIGIT+
     ;
+
 E
     = [eE]
     ;
-Plus
+
+SIGN
+    = PLUS / MINUS
+    ;
+
+PLUS
     = '+'
+    ;
+
+MINUS
+    = '-'
+    ;
+
+ZERO
+    = '0'
+    ;
+
+DIGIT1_9
+    = [1-9]
+    ;
+
+DIGIT
+    = [0-9]
     ;
