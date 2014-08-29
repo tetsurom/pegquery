@@ -314,4 +314,61 @@ public class Executor extends QueryVisitor<Object, ParsingObject> {
 		}
 		return null;
 	}
+
+	@Override
+	public Object visitTag(ParsingObject queryTree, ParsingObject data) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Object visitName(ParsingObject queryTree, ParsingObject data) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Object visitRange(ParsingObject queryTree, ParsingObject data) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Object visitIndex(ParsingObject queryTree, ParsingObject data) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Object visitCall(ParsingObject queryTree, ParsingObject data) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Object visitArgs(ParsingObject queryTree, ParsingObject data) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public Object visitString(ParsingObject queryTree, ParsingObject data) {	//FIXME: escape sequence
+		String tokenText = queryTree.getText();
+		final int size = tokenText.length();
+		StringBuilder sBuilder = new StringBuilder(size);
+		for(int i = 0; i < size; i++) {
+			char ch = tokenText.charAt(i);
+			if(ch == '\\' && i + 1 < size) {
+				char nextCh = tokenText.charAt(++i);
+				switch(tokenText.charAt(++i)) {
+				case 'n': ch = '\n'; break;
+				case 't': ch = '\t'; break;
+				case 'r': ch = '\r'; break;
+				default: ch = nextCh; break;
+				}
+			}
+			sBuilder.append(ch);
+		}
+		return sBuilder.toString();
+	}
 }

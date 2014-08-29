@@ -11,22 +11,24 @@ public abstract class QueryVisitor <R, T> {
 
 	protected QueryVisitor() {
 		this.dispatchMap = new HashMap<>();
-		this.dispatchMap.put("#select", this::visitSelect);
-		this.dispatchMap.put("#path", this::visitPath);
-		this.dispatchMap.put("#error", this::visitError);
-		this.dispatchMap.put("#from", this::visitFrom);
-		this.dispatchMap.put("#where", this::visitWhere);
 
-		this.dispatchMap.put("#and", this::visitAnd);
-		this.dispatchMap.put("#or", this::visitOr);
-		this.dispatchMap.put("#eq", this::visitEQ);
-		this.dispatchMap.put("#neq", this::visitNEQ);
-		this.dispatchMap.put("#le", this::visitLE);
-		this.dispatchMap.put("#ge", this::visitGE);
-		this.dispatchMap.put("#lt", this::visitLT);
-		this.dispatchMap.put("#gt", this::visitGT);
+		this.dispatchMap.put("#error",  this::visitError);
+		this.dispatchMap.put("#select", this::visitSelect);
+		this.dispatchMap.put("#where",  this::visitWhere);
+		this.dispatchMap.put("#from",   this::visitFrom);
+		this.dispatchMap.put("#path",   this::visitPath);
+
+		this.dispatchMap.put("#and",    this::visitAnd);
+		this.dispatchMap.put("#or",     this::visitOr);
+		this.dispatchMap.put("#eq",     this::visitEQ);
+		this.dispatchMap.put("#neq",    this::visitNEQ);
+		this.dispatchMap.put("#le",     this::visitLE);
+		this.dispatchMap.put("#ge",     this::visitGE);
+		this.dispatchMap.put("#lt",     this::visitLT);
+		this.dispatchMap.put("#gt",     this::visitGT);
 
 		this.dispatchMap.put("#number", this::visitNum);
+		this.dispatchMap.put("#string", this::visitString);
 	}
 
 	/**
@@ -67,11 +69,19 @@ public abstract class QueryVisitor <R, T> {
 		return func.apply(tree, data);
 	}
 
-	public abstract R visitSelect(ParsingObject queryTree, T data);
-	public abstract R visitPath  (ParsingObject queryTree, T data);
 	public abstract R visitError (ParsingObject queryTree, T data);
-	public abstract R visitFrom  (ParsingObject queryTree, T data);
+	public abstract R visitSelect(ParsingObject queryTree, T data);
 	public abstract R visitWhere (ParsingObject queryTree, T data);
+	public abstract R visitFrom  (ParsingObject queryTree, T data);
+
+	public abstract R visitPath  (ParsingObject queryTree, T data);
+	public abstract R visitTag   (ParsingObject queryTree, T data);
+	public abstract R visitName  (ParsingObject queryTree, T data);
+	public abstract R visitRange (ParsingObject queryTree, T data);
+	public abstract R visitIndex (ParsingObject queryTree, T data);
+
+	public abstract R visitCall  (ParsingObject queryTree, T data);
+	public abstract R visitArgs  (ParsingObject queryTree, T data);
 
 	// conditional expression
 	public abstract R visitAnd   (ParsingObject queryTree, T data);
@@ -84,4 +94,5 @@ public abstract class QueryVisitor <R, T> {
 	public abstract R visitGT    (ParsingObject queryTree, T data);
 
 	public abstract R visitNum   (ParsingObject queryTree, T data);
+	public abstract R visitString(ParsingObject queryTree, T data);
 }
