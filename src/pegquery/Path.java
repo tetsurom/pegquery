@@ -197,7 +197,9 @@ public class Path {
 		private void findAllDescendant(final List<ParsingObject> resultList, ParsingObject parent) {
 			final int size = parent.size();
 			for(int i = 0; i < size; i++) {
-				this.findAllDescendant(resultList, parent.get(i));
+				ParsingObject child = parent.get(i);
+				resultList.add(child);
+				this.findAllDescendant(resultList, child);
 			}
 		}
 	}
