@@ -3,6 +3,10 @@ TopLevel
     = _ Statement _
     ;
 
+_
+    = [ \t\n\r]*
+    ;
+
 Statement
     = SelectStatement
     ;
