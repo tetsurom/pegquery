@@ -23,6 +23,40 @@ public class Main {	//TODO: pipe line mode
 	private static boolean verboseData = false;
 
 	private static boolean time = false;
+	private static TimeUnit unit = TimeUnit.MilliSecond;
+
+	private static enum TimeUnit {
+		Second     ("s",  1),
+		MilliSecond("ms", 0);
+
+		private final String unitSymbol;
+		private final int count;
+		private TimeUnit(String unitSymbol, int count) {
+			this.unitSymbol = unitSymbol;
+			this.count = count;
+		}
+
+		public String getUnitSymbol() {
+			return this.unitSymbol;
+		}
+
+		public double convertUnit(long num) {
+			int d = 1;
+			for(int i = 0; i < this.count; i++) {
+				d *= 1000;
+			}
+			return (double) num / d;
+		}
+
+		public static TimeUnit toTimeUnit(String unitSymbol) {
+			for(TimeUnit unit : TimeUnit.values()) {
+				if(unit.getUnitSymbol().equals(unitSymbol)) {
+					return unit;
+				}
+			}
+			return TimeUnit.MilliSecond;
+		}
+	}
 
 	public static void main(String[] args) {
 		/**
@@ -43,7 +77,10 @@ public class Main {	//TODO: pipe line mode
 		.addOption("vq", "verbose:query", false, "display parsed query", 
 				s -> verboseQuery = true)
 		.addOption(null, "time", false, "display query execution time", 
-				s -> time = true);
+				s -> time = true)
+		.addOption(null, "time-unit", true, "set time unit (s, ms)", 
+				s -> unit = TimeUnit.toTimeUnit(s.get()));
+
 
 		try {
 			argsParser.parseAndInvokeAction(args);
@@ -105,16 +142,19 @@ public class Main {	//TODO: pipe line mode
 			long start = 0;
 			long stop = 0;
 			if(time) {
-				start = System.nanoTime();
+				start = System.currentTimeMillis();
 			}
 
 			List<ParsingObject> resultList = executor.execQuery(queryTree, target);
 
 			if(time) {
-				stop = System.nanoTime();
-				System.err.println("query execution time: " + (stop - start) + "ns");
+				stop = System.currentTimeMillis();
 			}
 			resultList.stream().forEach(t -> System.out.println(t.getText()));
+
+			if(time) {
+				System.err.println("query execution time: " + unit.convertUnit(stop - start) + unit.getUnitSymbol());
+			}
 			return true;
 		}
 		catch(QueryExecutionException e) {
