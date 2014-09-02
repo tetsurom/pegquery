@@ -13,9 +13,12 @@ _
 Root
 	= BeginObject 
 		'"type"' NameSep '"FeatureCollection"'     ValueSep 
-		MetaData ValueSep
-		Features ValueSep
-		BBox
+		{	
+			@MetaData ValueSep
+			@Features ValueSep
+			@BBox
+			#FeatureCollection
+		}
 	  EndObject
 	;
 
@@ -23,197 +26,209 @@ Root
 MetaData
 	= '"metadata"' NameSep 
 			BeginObject
-				Generated ValueSep
-				Url       ValueSep
-				Title     ValueSep
-				Status    ValueSep
-				Api       ValueSep
-				Count
+				{
+					@Generated ValueSep
+					@Url       ValueSep
+					@Title     ValueSep
+					@Status    ValueSep
+					@Api       ValueSep
+					@Count
+					#metadata
+				}
 			EndObject
 	;
 
 
 Generated
-	= '"generated"' NameSep Number
+	= '"generated"' NameSep { @Number #generated }
 	;
 
 Url
-	= '"url"' NameSep String
+	= '"url"' NameSep { @String #url }
 	;
 
 Title
-	= '"title"' NameSep String
+	= '"title"' NameSep { @String #title }
 	;
 
 Status
-	= '"status"' NameSep Any
+	= '"status"' NameSep { @Any #status }
 	;
 
 Api
-	= '"api"' NameSep String
+	= '"api"' NameSep { @String #api }
 	;
 
 Count
-	= '"count"' NameSep Any
+	= '"count"' NameSep { @Any #count }
 	;
 
 Features
 	= '"features"' NameSep
 			BeginArray
-				Feature (ValueSep Feature)+
+				{ @Feature (ValueSep @Feature)+ #Features }
 			EndArray
 	;
 
 Feature
 	= BeginObject
 			'"type"' NameSep '"Feature"' ValueSep
-			Properties ValueSep
-			Geometry   ValueSep
-			Id
+			{
+				@Properties ValueSep
+				@Geometry   ValueSep
+				@Id
+				#Feature
+			}
 	  EndObject
 	;
 
 Properties
 	= '"properties"' NameSep
 		BeginObject
-			Mag      ValueSep
-			Place    ValueSep
-			Time     ValueSep
-			Updated  ValueSep
-			Tz       ValueSep
-			Url      ValueSep
-			Detail   ValueSep
-			Felt     ValueSep
-			Cdi      ValueSep
-			Mmi      ValueSep
-			Alert    ValueSep
-			Status   ValueSep
-			Tsunami  ValueSep
-			Sig      ValueSep
-			Net      ValueSep
-			Code     ValueSep
-			Ids      ValueSep
-			Sources  ValueSep
-			Types    ValueSep
-			Nst      ValueSep
-			Dmin     ValueSep
-			Rms      ValueSep
-			Gap      ValueSep
-			MagType  ValueSep
-			Type     ValueSep
-			Title
+			{
+				@Mag      ValueSep
+				@Place    ValueSep
+				@Time     ValueSep
+				@Updated  ValueSep
+				@Tz       ValueSep
+				@Url      ValueSep
+				@Detail   ValueSep
+				@Felt     ValueSep
+				@Cdi      ValueSep
+				@Mmi      ValueSep
+				@Alert    ValueSep
+				@Status   ValueSep
+				@Tsunami  ValueSep
+				@Sig      ValueSep
+				@Net      ValueSep
+				@Code     ValueSep
+				@Ids      ValueSep
+				@Sources  ValueSep
+				@Types    ValueSep
+				@Nst      ValueSep
+				@Dmin     ValueSep
+				@Rms      ValueSep
+				@Gap      ValueSep
+				@MagType  ValueSep
+				@Type     ValueSep
+				@Title
+				#properties
+			}
 		EndObject
 	;
 
 Mag
-	= '"mag"' NameSep Any
+	= '"mag"' NameSep { Any #mag }
 	;
 
 Place
-	= '"place"' NameSep String
+	= '"place"' NameSep { String #place }
 	;
 
 Time
-	= '"time"' NameSep Any
+	= '"time"' NameSep { Any #time }
 	;
 
 Updated
-	= '"updated"' NameSep Any
+	= '"updated"' NameSep { Any #updated }
 	;
 
 Tz
-	= '"tz"' NameSep Any
+	= '"tz"' NameSep { Any #tz }
 	;
 
 Detail
-	= '"detail"' NameSep String
+	= '"detail"' NameSep { String #detail }
 	;
 
 Felt
-	= '"felt"' NameSep Any
+	= '"felt"' NameSep { Any #felt }
 	;
 
 Cdi
-	= '"cdi"' NameSep Any
+	= '"cdi"' NameSep { Any #cdi }
 	;
 
 Mmi
-	= '"mmi"' NameSep Any
+	= '"mmi"' NameSep { Any #mmi }
 	;
 
 Alert
-	= '"alert"' NameSep Any
+	= '"alert"' NameSep { Any #alert }
 	;
 
 Tsunami
-	= '"tsunami"' NameSep Any
+	= '"tsunami"' NameSep { Any #tsunami }
 	;
 
 Sig
-	= '"sig"' NameSep Any
+	= '"sig"' NameSep { Any #sig }
 	;
 
 Net
-	= '"net"' NameSep String
+	= '"net"' NameSep { String #net }
 	;
 
 Code
-	= '"code"' NameSep String
+	= '"code"' NameSep { String #code }
 	;
 
 Ids
-	= '"ids"' NameSep String
+	= '"ids"' NameSep { String #ids }
 	;
 
 Sources
-	= '"sources"' NameSep String
+	= '"sources"' NameSep { String #sources }
 	;
 
 Types
-	= '"types"' NameSep String
+	= '"types"' NameSep { String #types }
 	;
 
 Nst
-	= '"nst"' NameSep Any
+	= '"nst"' NameSep { Any #nst }
 	;
 
 Dmin
-	= '"dmin"' NameSep Any
+	= '"dmin"' NameSep { Any #dmin }
 	;
 
 Rms
-	= '"rms"' NameSep Any
+	= '"rms"' NameSep { Any #rms }
 	;
 
 Gap
-	= '"gap"' NameSep Any
+	= '"gap"' NameSep { Any #gap }
 	;
 
 MagType
-	= '"magType"' NameSep Any
+	= '"magType"' NameSep { Any #magType }
 	;
 
 Type
-	= '"type"' NameSep Any
+	= '"type"' NameSep { Any #type }
 	;
 
 Geometry
 	= '"geometry"' NameSep
 		BeginObject
-			Type ValueSep
-			Coordinates
+			{
+				@Type ValueSep
+				@Coordinates
+				#geometry
+			}
 		EndObject
 	;
 
 Coordinates
 	= '"coordinates"' NameSep
 		BeginArray
-			Number (ValueSep Number)+
+			{ @Number (ValueSep @Number)+ #coordinates }
 		EndArray
 	;
 
 Id
-	= '"id"' NameSep String
+	= '"id"' NameSep { String #id }
 	;
 	
 	
@@ -221,7 +236,7 @@ Id
 BBox
 	= '"bbox"' NameSep
 			BeginArray
-				Number (ValueSep Number)+
+				{ @Number (ValueSep @Number)+ #bbox }
 			EndArray
 	;
 
