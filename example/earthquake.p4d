@@ -1,0 +1,321 @@
+TopLevel
+	= Root
+	;
+
+File
+	= Root
+	;
+
+_
+	= [ \t\n\r]*
+	;
+
+Root
+	= BeginObject 
+		'"type"' NameSep '"FeatureCollection"'     ValueSep 
+		MetaData ValueSep
+		Features ValueSep
+		BBox
+	  EndObject
+	;
+
+
+MetaData
+	= '"metadata"' NameSep 
+			BeginObject
+				Generated ValueSep
+				Url       ValueSep
+				Title     ValueSep
+				Status    ValueSep
+				Api       ValueSep
+				Count
+			EndObject
+	;
+
+
+Generated
+	= '"generated"' NameSep Number
+	;
+
+Url
+	= '"url"' NameSep String
+	;
+
+Title
+	= '"title"' NameSep String
+	;
+
+Status
+	= '"status"' NameSep Any
+	;
+
+Api
+	= '"api"' NameSep String
+	;
+
+Count
+	= '"count"' NameSep Any
+	;
+
+Features
+	= '"features"' NameSep
+			BeginArray
+				Feature (ValueSep Feature)+
+			EndArray
+	;
+
+Feature
+	= BeginObject
+			'"type"' NameSep '"Feature"' ValueSep
+			Properties ValueSep
+			Geometry   ValueSep
+			Id
+	  EndObject
+	;
+
+Properties
+	= '"properties"' NameSep
+		BeginObject
+			Mag      ValueSep
+			Place    ValueSep
+			Time     ValueSep
+			Updated  ValueSep
+			Tz       ValueSep
+			Url      ValueSep
+			Detail   ValueSep
+			Felt     ValueSep
+			Cdi      ValueSep
+			Mmi      ValueSep
+			Alert    ValueSep
+			Status   ValueSep
+			Tsunami  ValueSep
+			Sig      ValueSep
+			Net      ValueSep
+			Code     ValueSep
+			Ids      ValueSep
+			Sources  ValueSep
+			Types    ValueSep
+			Nst      ValueSep
+			Dmin     ValueSep
+			Rms      ValueSep
+			Gap      ValueSep
+			MagType  ValueSep
+			Type     ValueSep
+			Title
+		EndObject
+	;
+
+Mag
+	= '"mag"' NameSep Any
+	;
+
+Place
+	= '"place"' NameSep String
+	;
+
+Time
+	= '"time"' NameSep Any
+	;
+
+Updated
+	= '"updated"' NameSep Any
+	;
+
+Tz
+	= '"tz"' NameSep Any
+	;
+
+Detail
+	= '"detail"' NameSep String
+	;
+
+Felt
+	= '"felt"' NameSep Any
+	;
+
+Cdi
+	= '"cdi"' NameSep Any
+	;
+
+Mmi
+	= '"mmi"' NameSep Any
+	;
+
+Alert
+	= '"alert"' NameSep Any
+	;
+
+Tsunami
+	= '"tsunami"' NameSep Any
+	;
+
+Sig
+	= '"sig"' NameSep Any
+	;
+
+Net
+	= '"net"' NameSep String
+	;
+
+Code
+	= '"code"' NameSep String
+	;
+
+Ids
+	= '"ids"' NameSep String
+	;
+
+Sources
+	= '"sources"' NameSep String
+	;
+
+Types
+	= '"types"' NameSep String
+	;
+
+Nst
+	= '"nst"' NameSep Any
+	;
+
+Dmin
+	= '"dmin"' NameSep Any
+	;
+
+Rms
+	= '"rms"' NameSep Any
+	;
+
+Gap
+	= '"gap"' NameSep Any
+	;
+
+MagType
+	= '"magType"' NameSep Any
+	;
+
+Type
+	= '"type"' NameSep Any
+	;
+
+Geometry
+	= '"geometry"' NameSep
+		BeginObject
+			Type ValueSep
+			Coordinates
+		EndObject
+	;
+
+Coordinates
+	= '"coordinates"' NameSep
+		BeginArray
+			Number (ValueSep Number)+
+		EndArray
+	;
+
+Id
+	= '"id"' NameSep String
+	;
+	
+	
+
+BBox
+	= '"bbox"' NameSep
+			BeginArray
+				Number (ValueSep Number)+
+			EndArray
+	;
+
+
+
+
+
+// common json definition
+
+NameSep
+	= _ ':' _
+	;
+
+ValueSep
+	= _ ',' _
+	;
+
+
+// Object definition
+BeginObject
+	= _ '{' _
+	;
+
+EndObject
+	= _ '}' _
+	;
+
+// Array definition
+BeginArray
+	= _ '[' _
+	;
+
+EndArray
+	= _ ']' _
+	;
+
+// Number literal definition
+Number
+	= Minus? Int Frac? Exp?
+	;
+
+Minus
+	= '-'
+	;
+Int
+	= Zero
+	/ Digit1_9 DIGIT*
+	;
+Zero
+	= '0'
+	;
+Digit1_9
+	= [1-9]
+	;
+DIGIT
+	= [0-9]
+	;
+Frac
+	= DecimalPoint DIGIT+
+	;
+DecimalPoint
+	= '.'
+	;
+Exp
+	= E (Minus / Plus)? DIGIT+
+	;
+E
+	= [eE]
+	;
+Plus
+	= '+'
+	;
+
+// String literal definition
+String
+	= QuotationMark ('\\"' / !QuotationMark .)* QuotationMark
+	;
+QuotationMark
+	= '"'
+	;
+
+// Boolean literal definition
+True
+	= 'true'
+	;
+False
+	= 'false'
+	;
+
+// Null literal
+Null
+	= 'null'
+	;
+
+Any
+	= Number / String / True / False / Null
+	;
