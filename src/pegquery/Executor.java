@@ -199,7 +199,7 @@ public class Executor extends QueryVisitor<Object, ParsingObject> {
 		else if((left instanceof Double) && (right instanceof Long)) {
 			return (double) left == (long) right;
 		}
-		return false;
+		return left == null && right == null;
 	}
 
 	@Override
@@ -218,7 +218,7 @@ public class Executor extends QueryVisitor<Object, ParsingObject> {
 		else if((left instanceof Double) && (right instanceof Long)) {
 			return (double) left != (long) right;
 		}
-		return false;
+		return left == null || right == null;
 	}
 
 	@Override
@@ -237,7 +237,7 @@ public class Executor extends QueryVisitor<Object, ParsingObject> {
 		else if((left instanceof Double) && (right instanceof Long)) {
 			return (double) left <= (long) right;
 		}
-		return false;
+		return left == null;
 	}
 
 	@Override
@@ -256,7 +256,7 @@ public class Executor extends QueryVisitor<Object, ParsingObject> {
 		else if((left instanceof Double) && (right instanceof Long)) {
 			return (double) left >= (long) right;
 		}
-		return false;
+		return right == null;
 	}
 
 	@Override
@@ -275,7 +275,7 @@ public class Executor extends QueryVisitor<Object, ParsingObject> {
 		else if((left instanceof Double) && (right instanceof Long)) {
 			return (double) left < (long) right;
 		}
-		return false;
+		return left == null && right != null;
 	}
 
 	@Override
@@ -294,7 +294,7 @@ public class Executor extends QueryVisitor<Object, ParsingObject> {
 		else if((left instanceof Double) && (right instanceof Long)) {
 			return (double) left > (long) right;
 		}
-		return false;
+		return left != null && right == null;
 	}
 
 	@Override

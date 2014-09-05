@@ -102,6 +102,10 @@ public class Main {	//TODO: pipe line mode
 			System.err.println(parsedObject);
 			System.err.println("");
 		}
+		if(p.hasChar()) {
+			p.showPosition("uncosumed");
+			System.exit(1);
+		}
 		if(parsedObject.isFailure() || parsedObject.is("#error")) {
 			System.err.println(parsedObject);
 			System.exit(1);
@@ -137,6 +141,10 @@ public class Main {	//TODO: pipe line mode
 		if(verboseQuery) {
 			System.err.println("parsed query:");
 			System.err.println(queryTree);
+		}
+		if(queryParserContext.hasChar()) {
+			queryParserContext.showPosition("uncosumed");
+			return false;
 		}
 		try {
 			long start = 0;
