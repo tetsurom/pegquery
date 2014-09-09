@@ -24,15 +24,15 @@ FromClause
     ;
 
 SELECT
-    = "select" !NCHAR _
+    = 'select' !NCHAR _
     ;
 
 WHERE
-    = "where" !NCHAR _
+    = 'where' !NCHAR _
     ;
 
 FROM
-    = "from" !NCHAR _
+    = 'from' !NCHAR _
     ;
 
 Path
@@ -88,15 +88,15 @@ NumberList
     ;
 
 WILDCARD
-    = "*"
+    = '*'
     ;
 
 DELIM
-    = "/"
+    = '/'
     ;
 
 TAG
-    = "#"? SYMBOL
+    = '#'? SYMBOL
     ;
 
 SYMBOL
@@ -183,25 +183,42 @@ NCHAR
     / [_]
     ;
 
+StringNoInterpolation
+    = ( DQUOTE { @StringBodyDouble* #string } DQUOTE )
+    / ( SQUOTE { @StringBodySingle* #string } SQUOTE )
+    ;
+
 String
     = StringDouble
     / StringSingle
     ;
 
 StringDouble
-    = DQUOTE { (!DQUOTE SCHAR)* #string } DQUOTE
+    = DQUOTE { (@InterpolatedExpr / @StringBodyDouble)* #string } DQUOTE
     ;
 
 StringSingle
-    = SQUOTE { (!SQUOTE SCHAR)* #string } SQUOTE
+    = SQUOTE { (@InterpolatedExpr / @StringBodySingle)* #string } SQUOTE
+    ;
+
+InterpolatedExpr
+    = '${' Expression '}'
+    ;
+
+StringBodyDouble
+    = { (!DQUOTE SCHAR)+ #segment }
+    ;
+
+StringBodySingle
+    = { (!SQUOTE SCHAR)+ #segment }
     ;
 
 SCHAR
-    = ESCAPED / .
+    = ESCAPED / !'$' .
     ;
 
 ESCAPED
-    = '\\\\' `\\`/ '\\"' `"`/ "\\'" `'`
+    = '\\\\' `\\`/ '\\"' `"`/ '\\\'' `'` / '\\$'
     ;
 
 DQUOTE
@@ -209,7 +226,7 @@ DQUOTE
     ;
 
 SQUOTE
-    = "'"
+    = '\"'
     ;
 
 Number
