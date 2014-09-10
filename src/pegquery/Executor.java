@@ -1,7 +1,6 @@
 package pegquery;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 
 import org.peg4d.Helper;
@@ -19,14 +18,13 @@ public class Executor extends QueryVisitor<Object, ParsingObject> {
 	 * @return
 	 * @throws QueryExecutionException
 	 */
-	@SuppressWarnings("unchecked")
-	public List<ParsingObject> execQuery(ParsingObject queryTree, ParsingObject targetObject) 
+	public RList execQuery(ParsingObject queryTree, ParsingObject targetObject) 
 			throws QueryExecutionException {
 		assert queryTree != null;
 		assert targetObject != null;
 		ParsingObject dummyRoot = Helper.dummyRoot(targetObject);
 		try {
-			List<ParsingObject> resultList = this.dispatchAndCast(queryTree, dummyRoot, List.class);
+			RList resultList = this.dispatchAndCast(queryTree, dummyRoot, RList.class);
 			if(resultList == null) {
 				throw new QueryExecutionException("illegal query:" + System.lineSeparator() + queryTree);
 			}
@@ -39,14 +37,15 @@ public class Executor extends QueryVisitor<Object, ParsingObject> {
 	}
 
 	@Override
-	public Object visitSelect(ParsingObject queryTree, ParsingObject data) {
+	public RList visitSelect(ParsingObject queryTree, ParsingObject data) {
 		ParsingObject fromTree = this.getChildAt(queryTree, "from");
 		ParsingObject whereTree = this.getChildAt(queryTree, "where");
 
+		RList resultList = new RList();
 		// select 
 		if(fromTree == null && whereTree == null) {
-			@SuppressWarnings("unchecked")
-			List<ParsingObject> resultList = this.dispatchAndCast(queryTree.get(0), data, List.class);
+			Object tree = this.dispatch(queryTree.get(0), data);
+			resultList.addAndFlat(tree);
 			return resultList;
 		}
 
@@ -54,21 +53,18 @@ public class Executor extends QueryVisitor<Object, ParsingObject> {
 		if(fromTree != null) {
 			@SuppressWarnings("unchecked")
 			List<ParsingObject> foundTreeList = this.dispatchAndCast(fromTree, data, List.class);
-			List<ParsingObject> resultList = new LinkedList<>();
 
 			if(whereTree == null) {	// select [from]
 				for(ParsingObject tree : foundTreeList) {
-					@SuppressWarnings("unchecked")
-					List<ParsingObject> treeList = this.dispatchAndCast(queryTree.get(0), tree, List.class);
-					resultList.addAll(treeList);
+					Object treeList = this.dispatch(queryTree.get(0), tree);
+					resultList.addAndFlat(treeList);
 				}
 			}
 			else {	// select [from, where]
 				for(ParsingObject tree : foundTreeList) {
 					if((boolean) this.dispatch(whereTree, tree)) {
-						@SuppressWarnings("unchecked")
-						List<ParsingObject> treeList = this.dispatchAndCast(queryTree.get(0), tree, List.class);
-						resultList.addAll(treeList);
+						Object treeList = this.dispatch(queryTree.get(0), tree);
+						resultList.addAndFlat(treeList);
 					}
 				}
 			}
@@ -144,8 +140,7 @@ public class Executor extends QueryVisitor<Object, ParsingObject> {
 			super(cause);
 		}
 
-		public static QueryExecutionException propagate(Throwable cause) 
-				throws QueryExecutionException {
+		public static void propagate(Throwable cause) throws QueryExecutionException {
 			if(cause instanceof QueryExecutionException) {
 				throw (QueryExecutionException) cause;
 			}
@@ -366,8 +361,17 @@ public class Executor extends QueryVisitor<Object, ParsingObject> {
 	}
 
 	@Override
-	public Object visitString(ParsingObject queryTree, ParsingObject data) {	//FIXME: escape sequence
-		String text = queryTree.getText();
-		return text.substring(1, text.length() - 1);
+	public Object visitString(ParsingObject queryTree, ParsingObject data) {
+		StringBuilder sBuilder = new StringBuilder();
+		final int size = queryTree.size();
+		for(int i = 0; i < size; i++) {
+			sBuilder.append(this.dispatch(queryTree.get(i), data));
+		}
+		return sBuilder.toString();
+	}
+
+	@Override
+	public Object visitSegment(ParsingObject queryTree, ParsingObject data) {
+		return queryTree.getText();
 	}
 }

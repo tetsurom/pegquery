@@ -33,6 +33,7 @@ public abstract class QueryVisitor <R, T> {
 
 		this.dispatchMap.put("#number",    this::visitNum);
 		this.dispatchMap.put("#string",    this::visitString);
+		this.dispatchMap.put("#segment",   this::visitSegment);
 	}
 
 	/**
@@ -78,29 +79,30 @@ public abstract class QueryVisitor <R, T> {
 		return (S) this.dispatch(tree, data);
 	}
 
-	public abstract R visitError (ParsingObject queryTree, T data);
-	public abstract R visitSelect(ParsingObject queryTree, T data);
-	public abstract R visitWhere (ParsingObject queryTree, T data);
-	public abstract R visitFrom  (ParsingObject queryTree, T data);
+	public abstract R visitError  (ParsingObject queryTree, T data);
+	public abstract R visitSelect (ParsingObject queryTree, T data);
+	public abstract R visitWhere  (ParsingObject queryTree, T data);
+	public abstract R visitFrom   (ParsingObject queryTree, T data);
 
-	public abstract R visitPath  (ParsingObject queryTree, T data);
-	public abstract R visitName  (ParsingObject queryTree, T data);
-	public abstract R visitRange (ParsingObject queryTree, T data);
-	public abstract R visitIndex (ParsingObject queryTree, T data);
+	public abstract R visitPath   (ParsingObject queryTree, T data);
+	public abstract R visitName   (ParsingObject queryTree, T data);
+	public abstract R visitRange  (ParsingObject queryTree, T data);
+	public abstract R visitIndex  (ParsingObject queryTree, T data);
 
-	public abstract R visitCall  (ParsingObject queryTree, T data);
-	public abstract R visitArgs  (ParsingObject queryTree, T data);
+	public abstract R visitCall   (ParsingObject queryTree, T data);
+	public abstract R visitArgs   (ParsingObject queryTree, T data);
 
 	// conditional expression
-	public abstract R visitAnd   (ParsingObject queryTree, T data);
-	public abstract R visitOr    (ParsingObject queryTree, T data);
-	public abstract R visitEQ    (ParsingObject queryTree, T data);
-	public abstract R visitNEQ   (ParsingObject queryTree, T data);
-	public abstract R visitLE    (ParsingObject queryTree, T data);
-	public abstract R visitGE    (ParsingObject queryTree, T data);
-	public abstract R visitLT    (ParsingObject queryTree, T data);
-	public abstract R visitGT    (ParsingObject queryTree, T data);
+	public abstract R visitAnd    (ParsingObject queryTree, T data);
+	public abstract R visitOr     (ParsingObject queryTree, T data);
+	public abstract R visitEQ     (ParsingObject queryTree, T data);
+	public abstract R visitNEQ    (ParsingObject queryTree, T data);
+	public abstract R visitLE     (ParsingObject queryTree, T data);
+	public abstract R visitGE     (ParsingObject queryTree, T data);
+	public abstract R visitLT     (ParsingObject queryTree, T data);
+	public abstract R visitGT     (ParsingObject queryTree, T data);
 
-	public abstract R visitNum   (ParsingObject queryTree, T data);
-	public abstract R visitString(ParsingObject queryTree, T data);
+	public abstract R visitNum    (ParsingObject queryTree, T data);
+	public abstract R visitString (ParsingObject queryTree, T data);
+	public abstract R visitSegment(ParsingObject queryTree, T data);
 }

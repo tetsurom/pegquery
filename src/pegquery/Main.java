@@ -1,6 +1,5 @@
 package pegquery;
 
-import java.util.List;
 import java.util.Optional;
 
 import org.peg4d.Grammar;
@@ -153,12 +152,12 @@ public class Main {	//TODO: pipe line mode
 				start = System.currentTimeMillis();
 			}
 
-			List<ParsingObject> resultList = executor.execQuery(queryTree, target);
+			RList resultList = executor.execQuery(queryTree, target);
 
 			if(time) {
 				stop = System.currentTimeMillis();
 			}
-			resultList.stream().forEach(t -> System.out.println(t.getText()));
+			resultList.stream().forEach(t -> System.out.println(stringify(t)));
 
 			if(time) {
 				System.err.println("query execution time: " + unit.convertUnit(stop - start) + unit.getUnitSymbol());
@@ -169,5 +168,12 @@ public class Main {	//TODO: pipe line mode
 			System.err.println(e.getMessage());
 		}
 		return false;
+	}
+
+	private static String stringify(Object value) {
+		if(value instanceof ParsingObject) {
+			return ((ParsingObject) value).getText();
+		}
+		return value.toString();
 	}
 }

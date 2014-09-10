@@ -208,9 +208,9 @@ public class Path {
 		private final Segment targetSegment;
 		private final List<Integer> indexList;
 
-		public IndexListSegment(Segment targteSegment, List<Integer> indexList) {
+		public IndexListSegment(Segment targetSegment, List<Integer> indexList) {
 			super(formatName(indexList));
-			this.targetSegment = targteSegment;
+			this.targetSegment = targetSegment;
 			this.indexList = indexList;
 		}
 
