@@ -60,7 +60,7 @@ RootPathSeg
     ;
 
 DecendantPathSeg
-    = { @DecendantPathName #tag }
+    = { @DescendantPathName #tag }
     ;
 
 PathName
@@ -71,8 +71,8 @@ RootPathName
     = { DELIM `/root`#name }
     ;
 
-DecendantPathName
-    = { DELIM `/decendant`#name }
+DescendantPathName
+    = { DELIM `/descendant`#name }
     ;
 
 ParentPathName

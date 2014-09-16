@@ -92,7 +92,7 @@ public class Executor extends QueryVisitor<Object, ParsingObject> {
 			case "/root":
 				segment = new Path.RootSegment();
 				break;
-			case "/decendant": {
+			case "/descendant": {
 				child = queryTree.get(++i);
 				String nextSegName = this.dispatchAndCast(child.get(0), data, String.class);
 				if(nextSegName.equals("*")) {
