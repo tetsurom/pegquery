@@ -269,4 +269,56 @@ public class Path {
 			return resultList;
 		}
 	}
+
+	public static class MatchSegment extends Segment {
+		private final Segment targetSegment;
+		private final String value;
+
+		public MatchSegment(Segment targetSegment, String value) {
+			super("match[" + value + "]");
+			this.targetSegment = targetSegment;
+			this.value = value;
+		}
+
+		@Override
+		public List<ParsingObject> match(ParsingObject target) {
+			List<ParsingObject> preList = this.targetSegment.match(target);
+			List<ParsingObject> resultList = new ArrayList<>();
+			final int size = preList.size();
+			for(int i = 0; i < size; i++) {
+				ParsingObject p = preList.get(i);
+				if(p.getText().equals(this.value)) {
+					resultList.add(p);
+				}
+			}
+			return resultList;
+		}
+	}
+
+	public static class ParentSegment extends Segment {
+		public ParentSegment() {
+			super("/parent");
+		}
+
+		@SuppressWarnings("unchecked")
+		@Override
+		public List<ParsingObject> match(ParsingObject target) {
+			ParsingObject parent = target.getParent();
+			if(parent != null) {
+				return Collections.singletonList(parent);
+			}
+			return Collections.EMPTY_LIST;
+		}
+	}
+
+	public static class SelfSegment extends Segment {
+		public SelfSegment() {
+			super("/self");
+		}
+
+		@Override
+		public List<ParsingObject> match(ParsingObject target) {
+			return Collections.singletonList(target);
+		}
+	}
 }

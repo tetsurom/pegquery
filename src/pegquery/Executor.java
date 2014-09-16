@@ -103,6 +103,12 @@ public class Executor extends QueryVisitor<Object, ParsingObject> {
 				}
 				break;
 			}
+			case "/parent":
+				segment = new Path.ParentSegment();
+				break;
+			case "/self":
+				segment = new Path.SelfSegment();
+				break;
 			case "*":
 				segment = new Path.WildCardSegment();
 				break;
@@ -117,6 +123,12 @@ public class Executor extends QueryVisitor<Object, ParsingObject> {
 				}
 				else if(index instanceof List) {
 					segment = new Path.IndexListSegment(segment, (List<Integer>) index);
+				}
+				else if(index instanceof String) {
+					segment = new Path.MatchSegment(segment, (String) index);
+				}
+				else {
+					throw new RuntimeException("unsupported index type: " + index);
 				}
 			}
 			path.addSegment(segment);
