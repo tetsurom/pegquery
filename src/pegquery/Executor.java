@@ -371,13 +371,63 @@ public class Executor extends QueryVisitor<Object, ParsingObject> {
 		// TODO Auto-generated method stub
 		return null;
 	}
+	
+	private String stringfyParsingObject(ParsingObject obj){
+		final int n = obj.size();
+		if(n == 0){
+			return obj.getText();
+		}
+		StringBuilder sBuilder = new StringBuilder();
+		for(int i = 0; i < n; ++i){
+			if(i > 0){
+				sBuilder.append(',');
+			}
+			ParsingObject child = obj.get(i);
+			if(child.size() == 0){
+				sBuilder.append(child.getText());
+			}else{
+				sBuilder.append('[');
+				sBuilder.append(stringfyParsingObject(child));
+				sBuilder.append(']');
+			}
+		}
+		return sBuilder.toString();
+	}
+	
+	private String stringfyParsingObject(List<ParsingObject> obj){
+		final int n = obj.size();
+		if(n == 0){
+			return "";
+		}
+		StringBuilder sBuilder = new StringBuilder();
+		for(int i = 0; i < n; ++i){
+			if(i > 0){
+				sBuilder.append(',');
+			}
+			ParsingObject child = obj.get(i);
+			if(child.size() == 0){
+				sBuilder.append(child.getText());
+			}else{
+				sBuilder.append('[');
+				sBuilder.append(stringfyParsingObject(child));
+				sBuilder.append(']');
+			}
+		}
+		return sBuilder.toString();
+	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public Object visitString(ParsingObject queryTree, ParsingObject data) {
 		StringBuilder sBuilder = new StringBuilder();
 		final int size = queryTree.size();
 		for(int i = 0; i < size; i++) {
-			sBuilder.append(this.dispatch(queryTree.get(i), data));
+			Object ret = this.dispatch(queryTree.get(i), data);
+			if(ret instanceof List<?>){
+				sBuilder.append(stringfyParsingObject((List<ParsingObject>)ret));
+			}else{
+				sBuilder.append(ret);
+			}
 		}
 		return sBuilder.toString();
 	}
