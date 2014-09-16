@@ -52,7 +52,7 @@ AbbrevatedPathSeg
     ;
 
 PathSeg
-    = { ( @SelfPathName / @ParentPathName / (@PathName @Index?)) #tag }
+    = { ( @ParentPathName / @SelfPathName / (@PathName @Index?)) #tag }
     ;
 
 RootPathSeg
