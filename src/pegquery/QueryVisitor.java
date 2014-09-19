@@ -22,6 +22,10 @@ public abstract class QueryVisitor <R, T> {
 		this.dispatchMap.put("#range",     this::visitRange);
 		this.dispatchMap.put("#indexlist", this::visitIndex);
 
+		this.dispatchMap.put("#call",      this::visitCall);
+		this.dispatchMap.put("#funcname",  this::visitFuncName);
+		this.dispatchMap.put("#arguments", this::visitArgs);
+
 		this.dispatchMap.put("#and",       this::visitAnd);
 		this.dispatchMap.put("#or",        this::visitOr);
 		this.dispatchMap.put("#eq",        this::visitEQ);
@@ -90,6 +94,7 @@ public abstract class QueryVisitor <R, T> {
 	public abstract R visitIndex  (ParsingObject queryTree, T data);
 
 	public abstract R visitCall   (ParsingObject queryTree, T data);
+	public abstract R visitFuncName(ParsingObject queryTree, T data);
 	public abstract R visitArgs   (ParsingObject queryTree, T data);
 
 	// conditional expression

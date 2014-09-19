@@ -48,7 +48,7 @@ AbsolutePath
     ;
 
 AbbrevatedPathSeg
-    = @DecendantPathSeg? @PathSeg
+    = @DescendantPathSeg? @PathSeg
     ;
 
 PathSeg
@@ -59,7 +59,7 @@ RootPathSeg
     = { @RootPathName #tag }
     ;
 
-DecendantPathSeg
+DescendantPathSeg
     = { @DescendantPathName #tag }
     ;
 
@@ -117,7 +117,11 @@ PrimaryExpression
     ;
 
 FuncCall
-    = { @SYMBOL _ '(' @ArgumentList ')' #call } _ 
+    = { @FuncName _ '(' @ArgumentList ')' #call } _ 
+    ;
+
+FuncName
+    = { SYMBOL #funcname }
     ;
 
 ArgumentList

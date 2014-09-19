@@ -1,7 +1,9 @@
 package pegquery;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.peg4d.Helper;
 import org.peg4d.ParsingObject;
@@ -9,6 +11,21 @@ import org.peg4d.ParsingObject;
 import pegquery.Path.Segment;
 
 public class Executor extends QueryVisitor<Object, ParsingObject> {
+	private final Map<String, QueryFunction> funcMap;
+
+	public Executor() {
+		this.funcMap = new HashMap<>();
+
+		this.funcMap.put("count", new QueryFunction() {
+			@SuppressWarnings("unchecked")
+			@Override
+			public Object invoke(List<Object> argList) {
+				List<ParsingObject> arg = (List<ParsingObject>) argList.get(0);
+				return arg.size();
+			}
+		});
+	}
+
 	/**
 	 * 
 	 * @param queryTree
@@ -362,14 +379,30 @@ public class Executor extends QueryVisitor<Object, ParsingObject> {
 
 	@Override
 	public Object visitCall(ParsingObject queryTree, ParsingObject data) {
-		// TODO Auto-generated method stub
-		return null;
+		String funcName = this.dispatchAndCast(queryTree.get(0), data, String.class);
+		@SuppressWarnings("unchecked")
+		List<Object> argList = this.dispatchAndCast(queryTree.get(1), data, List.class);
+
+		QueryFunction func = this.funcMap.get(funcName);
+		if(func == null) {
+			throw new IllegalArgumentException("undefined function: " + funcName);
+		}
+		return func.invoke(argList);
+	}
+
+	@Override
+	public Object visitFuncName(ParsingObject queryTree, ParsingObject data) {
+		return queryTree.getText();
 	}
 
 	@Override
 	public Object visitArgs(ParsingObject queryTree, ParsingObject data) {
-		// TODO Auto-generated method stub
-		return null;
+		List<Object> argList = new ArrayList<>();
+		final int size = queryTree.size();
+		for(int i = 0; i < size; i++) {
+			argList.add(this.dispatch(queryTree.get(i), data));
+		}
+		return argList;
 	}
 	
 	private String stringfyParsingObject(ParsingObject obj){
