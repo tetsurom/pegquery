@@ -209,8 +209,10 @@ public class Executor extends QueryVisitor<Object, ParsingObject> {
 
 	@Override
 	public Object visitEQ(ParsingObject queryTree, ParsingObject data) {
-		Number left = this.asNumber(this.dispatch(queryTree.get(0), data));
-		Number right = this.asNumber(this.dispatch(queryTree.get(1), data));
+		String leftStr = this.asString(this.dispatch(queryTree.get(0), data));
+		String rightStr = this.asString(this.dispatch(queryTree.get(1), data));
+		Number left = this.asNumber(leftStr);
+		Number right = this.asNumber(rightStr);
 		if((left instanceof Long) && (right instanceof Long)) {
 			return (long) left == (long) right;
 		}
@@ -223,26 +225,22 @@ public class Executor extends QueryVisitor<Object, ParsingObject> {
 		else if((left instanceof Double) && (right instanceof Long)) {
 			return (double) left == (long) right;
 		}
-		return left == null && right == null;
+		if(leftStr != null){
+			return leftStr.equals(rightStr);
+		}
+		else if(rightStr != null){
+			return rightStr.equals(leftStr);
+		}
+		return true;
 	}
 
 	@Override
 	public Object visitNEQ(ParsingObject queryTree, ParsingObject data) {
-		Number left = this.asNumber(this.dispatch(queryTree.get(0), data));
-		Number right = this.asNumber(this.dispatch(queryTree.get(1), data));
-		if((left instanceof Long) && (right instanceof Long)) {
-			return (long) left != (long) right;
+		Object eq = this.visitEQ(queryTree, data);
+		if(eq == null || !(eq instanceof Boolean)){
+			return false;
 		}
-		else if((left instanceof Long) && (right instanceof Double)) {
-			return (long) left != (double) right;
-		}
-		else if((left instanceof Double) && (right instanceof Double)) {
-			return (double) left != (double) right;
-		}
-		else if((left instanceof Double) && (right instanceof Long)) {
-			return (double) left != (long) right;
-		}
-		return left == null || right == null;
+		return !((Boolean)eq).booleanValue();
 	}
 
 	@Override
@@ -327,6 +325,28 @@ public class Executor extends QueryVisitor<Object, ParsingObject> {
 	}
 
 	@SuppressWarnings("unchecked")
+	private String asString(Object value) {
+		if(value == null) {
+			return null;
+		}
+		if(value instanceof String) {
+			return (String) value;
+		}
+		String str = null;
+		if(value instanceof List) {
+			List<ParsingObject> list = (List<ParsingObject>) value;
+			if(list.size() == 0){
+				return null;
+			}
+			str = list.get(0).getText();
+		}
+		else if(value instanceof ParsingObject) {
+			str = ((ParsingObject) value).getText();
+		}
+		return str;
+	}
+	
+	@SuppressWarnings("unchecked")
 	private Number asNumber(Object value) {
 		if(value == null) {
 			return null;
@@ -334,16 +354,7 @@ public class Executor extends QueryVisitor<Object, ParsingObject> {
 		if(value instanceof Number) {
 			return (Number) value;
 		}
-		String str = null;
-		if(value instanceof List) {
-			str = ((List<ParsingObject>) value).get(0).getText();
-		}
-		else if(value instanceof ParsingObject) {
-			str = ((ParsingObject) value).getText();
-		}
-		else if(value instanceof String) {
-			str = (String) value;
-		}
+		String str = this.asString(value);
 		try {
 			if(str.indexOf(".") == -1) {
 				return Long.parseLong(str);	// as long
