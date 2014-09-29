@@ -1,4 +1,4 @@
-package pegquery;
+package org.peg4d.query;
 
 public class Pair<L, R> {
 	private L left;

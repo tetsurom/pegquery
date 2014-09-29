@@ -1,4 +1,4 @@
-package pegquery;
+package org.peg4d.query;
 
 import java.util.Optional;
 
@@ -9,8 +9,7 @@ import org.peg4d.ParsingContext;
 import org.peg4d.ParsingMemoConfigure;
 import org.peg4d.ParsingObject;
 import org.peg4d.ParsingSource;
-
-import pegquery.Executor.QueryExecutionException;
+import org.peg4d.query.Executor.QueryExecutionException;
 
 public class Main {	//TODO: pipe line mode
 	private final static String defaultStartPoint = "TopLevel";

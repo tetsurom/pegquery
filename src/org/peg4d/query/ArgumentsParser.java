@@ -1,4 +1,4 @@
-package pegquery;
+package org.peg4d.query;
 
 import java.io.PrintStream;
 import java.util.ArrayList;

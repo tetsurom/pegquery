@@ -1,4 +1,4 @@
-package pegquery;
+package org.peg4d.query;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -8,8 +8,7 @@ import java.util.Map;
 import org.peg4d.Helper;
 import org.peg4d.ParsingObject;
 import org.peg4d.ParsingTag;
-
-import pegquery.Path.Segment;
+import org.peg4d.query.Path.Segment;
 
 public class Executor extends QueryVisitor<Object, ParsingObject> {
 	private final Map<String, QueryFunction> funcMap;
