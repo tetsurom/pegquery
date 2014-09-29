@@ -6,6 +6,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.peg4d.ParsingObject;
+import org.peg4d.ParsingTag;
 
 public class Path {
 	private final List<Segment> segmentList;
@@ -53,6 +54,7 @@ public class Path {
 	 */
 	public static abstract class Segment {
 		protected final String tag;
+		protected final int tagId;
 
 		/**
 		 * 
@@ -61,6 +63,7 @@ public class Path {
 		 */
 		public Segment(String name) {
 			this.tag = name;
+			this.tagId = ParsingTag.tagId(name);
 		}
 
 		public String getTag() {
@@ -73,9 +76,6 @@ public class Path {
 		}
 
 		protected static String resolveTag(String tagName) {
-			if(!tagName.startsWith("#")) {
-				tagName = "#"+ tagName;
-			}
 			return tagName;
 		}
 
@@ -114,7 +114,7 @@ public class Path {
 			final int size = target.size();
 			for(int i = 0; i < size; i++) {
 				ParsingObject child = target.get(i);
-				if(child.is(this.tag)) {
+				if(child.is(this.tagId)) {
 					resultList.add(child);
 				}
 			}
@@ -164,7 +164,7 @@ public class Path {
 			final int size = parent.size();
 			for(int i = 0; i < size; i++) {
 				ParsingObject child = parent.get(i);
-				if(child.is(this.tag)) {
+				if(child.is(this.tagId)) {
 					resultList.add(child);
 				}
 				this.findAllMatchedDescendant(resultList, child);

@@ -7,7 +7,8 @@ public class Helper {
 	}
 
 	public static ParsingObject dummyRoot(ParsingObject target) {
-		ParsingObject dummyRoot = ParsingObject.newSource("#$dummy_root$", target.getSource(), 0);
+		ParsingObjectUtils.newStringSource(target);
+		ParsingObject dummyRoot = new ParsingObject(new ParsingTag("#$dummy_root$"), target.getSource(), 0);
 		dummyRoot.append(target);
 		return dummyRoot;
 	}

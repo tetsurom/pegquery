@@ -3,9 +3,10 @@ package pegquery;
 import java.util.Optional;
 
 import org.peg4d.Grammar;
-import org.peg4d.GrammarComposer;
+import org.peg4d.GrammarFactory;
 import org.peg4d.Helper;
-import org.peg4d.ParserContext;
+import org.peg4d.ParsingContext;
+import org.peg4d.ParsingMemoConfigure;
 import org.peg4d.ParsingObject;
 import org.peg4d.ParsingSource;
 
@@ -92,20 +93,24 @@ public class Main {	//TODO: pipe line mode
 		/**
 		 * parse data file
 		 */
-		Grammar peg = Grammar.load(new GrammarComposer(), pegDef4Data.get());
-		ParserContext p = peg.newParserContext(org.peg4d.Main.loadSource(peg, targetData.get()));
-		ParsingObject parsedObject = p.parseNode(defaultStartPoint);	//FIXME
+		
+		Grammar peg = pegDef4Data.get() == null ? GrammarFactory.Grammar : new GrammarFactory().newGrammar("data", pegDef4Data.get());
+		
+		String dataFilename = targetData.get();
+		ParsingSource dataSource = org.peg4d.Main.loadSource(peg, dataFilename);
+		ParsingContext context = new ParsingContext(dataSource);
+		ParsingObject parsedObject = context.parse(peg, defaultStartPoint);
 
 		if(verboseData) {
 			System.err.println("parsed data:");
 			System.err.println(parsedObject);
 			System.err.println("");
 		}
-		if(p.hasChar()) {
-			p.showPosition("uncosumed");
+		if(context.hasByteChar()) {
+			System.out.println("uncosumed");
 			System.exit(1);
 		}
-		if(parsedObject.isFailure() || parsedObject.is("#error")) {
+		if(context.isFailure()) {
 			System.err.println(parsedObject);
 			System.exit(1);
 		}
@@ -113,7 +118,8 @@ public class Main {	//TODO: pipe line mode
 		/**
 		 * exec query
 		 */
-		Grammar queryPeg = Grammar.load(new GrammarComposer(), pegDef4Query);
+		Grammar queryPeg = new GrammarFactory().newGrammar("data", pegDef4Query);
+		
 		if(queryScript.isPresent()) {
 			boolean result = parseAndRunQuery(new Executor(), queryPeg, 
 					org.peg4d.Main.loadSource(peg, queryScript.get()), parsedObject);
@@ -135,14 +141,14 @@ public class Main {	//TODO: pipe line mode
 	}
 
 	private static boolean parseAndRunQuery(Executor executor, Grammar queryPeg, ParsingSource source, ParsingObject target) {
-		ParserContext queryParserContext = queryPeg.newParserContext(source);
-		ParsingObject queryTree = queryParserContext.parseNode(defaultStartPoint);
+		ParsingContext queryParserContext = new ParsingContext(source);
+		ParsingObject queryTree = queryParserContext.parseChunk(queryPeg, defaultStartPoint);
 		if(verboseQuery) {
 			System.err.println("parsed query:");
 			System.err.println(queryTree);
 		}
-		if(queryParserContext.hasChar()) {
-			queryParserContext.showPosition("uncosumed");
+		if(queryParserContext.hasByteChar()) {
+			System.out.println("uncosumed");
 			return false;
 		}
 		try {

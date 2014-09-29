@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.function.BiFunction;
 
 import org.peg4d.ParsingObject;
+import org.peg4d.ParsingTag;
 
 public abstract class QueryVisitor <R, T> {
 	protected final Map<String, BiFunction<ParsingObject, T, R>> dispatchMap;
@@ -12,32 +13,32 @@ public abstract class QueryVisitor <R, T> {
 	protected QueryVisitor() {
 		this.dispatchMap = new HashMap<>();
 
-		this.dispatchMap.put("#error",     this::visitError);
-		this.dispatchMap.put("#select",    this::visitSelect);
-		this.dispatchMap.put("#where",     this::visitWhere);
-		this.dispatchMap.put("#from",      this::visitFrom);
+		this.dispatchMap.put("error",     this::visitError);
+		this.dispatchMap.put("select",    this::visitSelect);
+		this.dispatchMap.put("where",     this::visitWhere);
+		this.dispatchMap.put("from",      this::visitFrom);
 
-		this.dispatchMap.put("#path",      this::visitPath);
-		this.dispatchMap.put("#name",      this::visitName);
-		this.dispatchMap.put("#range",     this::visitRange);
-		this.dispatchMap.put("#indexlist", this::visitIndex);
+		this.dispatchMap.put("path",      this::visitPath);
+		this.dispatchMap.put("name",      this::visitName);
+		this.dispatchMap.put("range",     this::visitRange);
+		this.dispatchMap.put("indexlist", this::visitIndex);
 
-		this.dispatchMap.put("#call",      this::visitCall);
-		this.dispatchMap.put("#funcname",  this::visitFuncName);
-		this.dispatchMap.put("#arguments", this::visitArgs);
+		this.dispatchMap.put("call",      this::visitCall);
+		this.dispatchMap.put("funcname",  this::visitFuncName);
+		this.dispatchMap.put("arguments", this::visitArgs);
 
-		this.dispatchMap.put("#and",       this::visitAnd);
-		this.dispatchMap.put("#or",        this::visitOr);
-		this.dispatchMap.put("#eq",        this::visitEQ);
-		this.dispatchMap.put("#neq",       this::visitNEQ);
-		this.dispatchMap.put("#le",        this::visitLE);
-		this.dispatchMap.put("#ge",        this::visitGE);
-		this.dispatchMap.put("#lt",        this::visitLT);
-		this.dispatchMap.put("#gt",        this::visitGT);
+		this.dispatchMap.put("and",       this::visitAnd);
+		this.dispatchMap.put("or",        this::visitOr);
+		this.dispatchMap.put("eq",        this::visitEQ);
+		this.dispatchMap.put("neq",       this::visitNEQ);
+		this.dispatchMap.put("le",        this::visitLE);
+		this.dispatchMap.put("ge",        this::visitGE);
+		this.dispatchMap.put("lt",        this::visitLT);
+		this.dispatchMap.put("gt",        this::visitGT);
 
-		this.dispatchMap.put("#number",    this::visitNum);
-		this.dispatchMap.put("#string",    this::visitString);
-		this.dispatchMap.put("#segment",   this::visitSegment);
+		this.dispatchMap.put("number",    this::visitNum);
+		this.dispatchMap.put("string",    this::visitString);
+		this.dispatchMap.put("segment",   this::visitSegment);
 	}
 
 	/**
@@ -48,14 +49,12 @@ public abstract class QueryVisitor <R, T> {
 	 * may be null
 	 */
 	protected ParsingObject getChildAt(final ParsingObject parent, String tag) {
-		if(!tag.startsWith("#")) {
-			tag = "#" + tag;
-		}
+		int tagid = ParsingTag.tagId(tag);
 
 		final int size = parent.size();
 		for(int i = 0; i < size; i++) {
 			ParsingObject chid = parent.get(i);
-			if(chid.is(tag)) {
+			if(chid.is(tagid)) {
 				return chid;
 			}
 		}
@@ -71,9 +70,9 @@ public abstract class QueryVisitor <R, T> {
 	 * return value of looked up method
 	 */
 	protected R dispatch(ParsingObject tree, T data) {
-		BiFunction<ParsingObject, T, R> func = this.dispatchMap.get(tree.getTag());
+		BiFunction<ParsingObject, T, R> func = this.dispatchMap.get(tree.getTag().key());
 		if(func == null) {
-			throw new RuntimeException("undefined action: " + tree.getTag());
+			throw new RuntimeException("undefined action: " + tree.getTag().key());
 		}
 		return func.apply(tree, data);
 	}

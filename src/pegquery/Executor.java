@@ -7,6 +7,7 @@ import java.util.Map;
 
 import org.peg4d.Helper;
 import org.peg4d.ParsingObject;
+import org.peg4d.ParsingTag;
 
 import pegquery.Path.Segment;
 
@@ -89,6 +90,8 @@ public class Executor extends QueryVisitor<Object, ParsingObject> {
 		}
 		return null;
 	}
+	
+	private static final int TAGID_TAG = ParsingTag.tagId("tag");
 
 	/**
 	 * create path and evaluate. return List<ParsingObject>
@@ -100,7 +103,8 @@ public class Executor extends QueryVisitor<Object, ParsingObject> {
 		final int size = queryTree.size();
 		for(int i = 0; i < size; i++) {
 			ParsingObject child = queryTree.get(i);
-			if(!child.is("#tag")) {
+			
+			if(!child.is(TAGID_TAG)) {
 				throw new QueryExecutionException("illegal path:" + System.lineSeparator() + queryTree);
 			}
 			String segName = this.dispatchAndCast(child.get(0), data, String.class);
@@ -409,35 +413,13 @@ public class Executor extends QueryVisitor<Object, ParsingObject> {
 	@Override
 	public Object visitArgs(ParsingObject queryTree, ParsingObject data) {
 		List<Object> argList = new ArrayList<>();
-		final int size = queryTree.size();
-		for(int i = 0; i < size; i++) {
-			argList.add(this.dispatch(queryTree.get(i), data));
+		for(ParsingObject child : queryTree) {
+			argList.add(this.dispatch(child, data));
 		}
 		return argList;
 	}
 	
-	private String stringfyParsingObject(ParsingObject obj){
-		final int n = obj.size();
-		if(n == 0){
-			return obj.getText();
-		}
-		StringBuilder sBuilder = new StringBuilder();
-		for(int i = 0; i < n; ++i){
-			if(i > 0){
-				sBuilder.append(',');
-			}
-			ParsingObject child = obj.get(i);
-			if(child.size() == 0){
-				sBuilder.append(child.getText());
-			}else{
-				sBuilder.append('[');
-				sBuilder.append(stringfyParsingObject(child));
-				sBuilder.append(']');
-			}
-		}
-		return sBuilder.toString();
-	}
-	
+
 	private String stringfyParsingObject(List<ParsingObject> obj){
 		final int n = obj.size();
 		if(n == 0){

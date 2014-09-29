@@ -1,298 +1,225 @@
 
 TopLevel
     = _ Statement _
-    ;
 
 _
     = [ \t\n\r]*
-    ;
 
 Statement
     = SelectStatement
-    ;
 
 SelectStatement
     = SELECT { @Expression @FromClause? @WhereClause? #select }
-    ;
 
 WhereClause
     = WHERE { @Expression #where } _
-    ;
 
 FromClause
     = FROM { @Path #from } _
-    ;
 
 SELECT
     = 'select' !NCHAR _
-    ;
 
 WHERE
     = 'where' !NCHAR _
-    ;
 
 FROM
     = 'from' !NCHAR _
-    ;
 
 Path
     = AbsolutePath / RelativePath
-    ;
 
 RelativePath
-    = { @PathSeg (DELIM @AbbrevatedPathSeg)* #path } _
-    ;
+    = { @PathSeg (DELIM addAbbrevatedPathSeg)* #path } _
 
 AbsolutePath
-    = { @RootPathSeg ( @AbbrevatedPathSeg (DELIM @AbbrevatedPathSeg)*)? #path } _
-    ;
+    = { @RootPathSeg ( addAbbrevatedPathSeg (DELIM addAbbrevatedPathSeg)*)? #path } _
 
-AbbrevatedPathSeg
-    = @DescendantPathSeg? @PathSeg
-    ;
+addAbbrevatedPathSeg
+    = (@DescendantPathSeg)? @PathSeg
 
 PathSeg
     = { ( @ParentPathName / @SelfPathName / (@PathName @Index?)) #tag }
-    ;
 
 RootPathSeg
     = { @RootPathName #tag }
-    ;
 
 DescendantPathSeg
     = { @DescendantPathName #tag }
-    ;
 
 PathName
     = { (WILDCARD / TAG) #name }
-    ;
 
 RootPathName
     = { DELIM `/root`#name }
-    ;
 
 DescendantPathName
     = { DELIM `/descendant`#name }
-    ;
 
 ParentPathName
     = { '..' `/parent` #name }
-    ;
 
 SelfPathName
     = { '.' `/self` #name }
-    ;
 
 Index
     = '[' _ (StringNoInterpolation / Range / NumberList) _ ']' _
-    ;
 
 Range
     = { @Number _ '..' _ @Number #range }
-    ;
 
 NumberList
     = { (@Number (COMMA @Number)*)? #indexlist } _
-    ;
 
 WILDCARD
     = '*'
-    ;
 
 DELIM
     = '/'
-    ;
 
 TAG
     = '#'? [a-zA-Z_][a-zA-Z0-9_-.]*
-    ;
 
 SYMBOL
     = [a-zA-Z_][a-zA-Z0-9_]*
-    ;
 
 PrimaryExpression
     = ( Number / String / FuncCall / Path ) _
     / '(' _ Expression _ ')' _
-    ;
 
 FuncCall
     = { @FuncName _ '(' @ArgumentList ')' #call } _ 
-    ;
 
 FuncName
     = { SYMBOL #funcname }
-    ;
 
 ArgumentList
     = { (@Expression (COMMA @Expression)*)? #arguments } _
-    ;
 
-EQ
+addEQ
     = '==' _ #eq
-    ;
 
-NEQ
+addNEQ
     = '!=' _ #neq
-    ;
 
-LE
+addLE
     = '<=' _ #le
-    ;
 
-GE
+addGE
     = '>=' _ #ge
-    ;
 
-LT
+addLT
     = '<' !'=' _ #lt
-    ;
 
-GT
+addGT
     = '>' !'=' _ #gt
-    ;
 
-RATIONAL
-    = EQ / NEQ / LE / GE / LT / GT
-    ;
+addRational
+    = addEQ / addNEQ / addLE / addGE / addLT / addGT
 
 RelationalExpression
-    = PrimaryExpression {@ RATIONAL @PrimaryExpression }*
-    ;
+    = PrimaryExpression {@ addRational @PrimaryExpression }*
 
-OR
+addOR
     = ('||' / 'or' !NCHAR) _ #or
-    ;
 
-AND
+addAND
     = ('&&' / 'and' !NCHAR) _ #and
-    ;
 
 AndExpression
-    = RelationalExpression {@ AND @RelationalExpression }*
-    ;
+    = RelationalExpression {@ addAND @RelationalExpression }*
 
 OrExpression
-    = AndExpression {@ OR @AndExpression }*
-    ;
+    = AndExpression {@ addOR @AndExpression }*
 
 COMMA
     = ',' _
-    ;
 
 CommaExpression
     = OrExpression {@ COMMA @OrExpression }*
-    ;
 
 Expression
     = CommaExpression
-    ;
 
 NCHAR
     = [a-zA-Z0-9_]
     / [A-Z]
     / [0-9]
     / [_]
-    ;
 
 StringNoInterpolation
     = StringNoInterpolationDouble
     / StringNoInterpolationSingle
-    ;
 
 StringNoInterpolationDouble
     = DQUOTE { @StringBodyDouble* #string } DQUOTE
-    ;
 
 StringNoInterpolationSingle
     = SQUOTE { @StringBodySingle* #string } SQUOTE
-    ;
 
 String
     = StringDouble
     / StringSingle
-    ;
 
 StringDouble
     = DQUOTE { (@InterpolatedExpr / @StringBodyDouble)* #string } DQUOTE
-    ;
 
 StringSingle
     = SQUOTE { (@InterpolatedExpr / @StringBodySingle)* #string } SQUOTE
-    ;
 
 InterpolatedExpr
     = '${' Expression '}'
-    ;
 
 StringBodyDouble
     = { (!DQUOTE SCHAR)+ #segment }
-    ;
 
 StringBodySingle
     = { (!SQUOTE SCHAR)+ #segment }
-    ;
 
 SCHAR
     = ESCAPED / !'$' .
-    ;
 
 ESCAPED
     = '\\\\' `\\`/ '\\"' `"`/ '\\\'' `'` / '\\$'
-    ;
 
 DQUOTE
     = '"'
-    ;
 
 SQUOTE
     = '\''
-    ;
 
 Number
     = { MINUS? INT FRAC? EXP? #number }
-    ;
 
 INT
     = ZERO / DIGIT1_9 DIGIT*
-    ;
 
 FRAC
     = POINT DIGIT+
-    ;
 
 POINT
     = '.'
-    ;
 
 EXP
     = E SIGN? DIGIT+
-    ;
 
 E
     = [eE]
-    ;
 
 SIGN
     = PLUS / MINUS
-    ;
 
 PLUS
     = '+'
-    ;
 
 MINUS
     = '-'
-    ;
 
 ZERO
     = '0'
-    ;
 
 DIGIT1_9
     = [1-9]
-    ;
 
 DIGIT
     = [0-9]
-    ;
